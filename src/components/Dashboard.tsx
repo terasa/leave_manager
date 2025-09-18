@@ -1,7 +1,7 @@
 import React from 'react';
 import { Users, Calendar, Clock, TrendingUp } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { englishToPersianNumbers, formatDuration } from '../utils/dateHelpers';
+import { englishToPersianNumbers, formatDuration, formatPersianDate } from '../utils/dateHelpers';
 
 const Dashboard: React.FC = () => {
   const { employees, leaves, settings } = useLocalStorage();
@@ -114,7 +114,7 @@ const Dashboard: React.FC = () => {
                           }
                         </p>
                         <p className="text-xs text-gray-500">
-                          {new Date(leave.start_date).toLocaleDateString('fa-IR')}
+                          {formatPersianDate(new Date(leave.start_date))}
                         </p>
                       </div>
                     </div>

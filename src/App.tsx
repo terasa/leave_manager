@@ -8,6 +8,7 @@ import LeaveManagement from './components/LeaveManagement';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
 import SystemLogs from './components/SystemLogs';
+import Backup from './components/Backup';
 
 function App() {
   const { currentUser, loading, login, logout } = useAuth();
@@ -39,6 +40,8 @@ function App() {
         return <LeaveManagement />;
       case 'reports':
         return <Reports />;
+      case 'backup':
+        return <Backup />;
       case 'settings':
         return <Settings />;
       case 'logs':

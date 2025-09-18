@@ -72,34 +72,81 @@ const Reports: React.FC = () => {
   };
 
   const exportToExcel = () => {
-    const data = filteredLeaves.map(leave => {
+    // Create employee summary data
+    const employeeSummaryData = employees.map(employee => {
+      const stats = getEmployeeStats(employee.id);
+      return {
+        'نام کارمند': `${employee.name} ${employee.last_name}`,
+        'کد پرسنلی': englishToPersianNumbers(employee.employee_id),
+        'سمت': employee.position,
+        'مرخصی روزانه استفاده شده': `${englishToPersianNumbers(stats.totalDailyDays.toString())} روز`,
+        'مرخصی ساعتی استفاده شده': formatDuration(stats.totalHourlyMinutes / 60),
+        'کل مرخصی استفاده شده': formatLeaveBalance((stats.totalDailyDays * 8 * 60) + stats.totalHourlyMinutes),
+        'مانده مرخصی': formatLeaveBalance(stats.remainingMinutes),
+        'کل تعداد مرخصی‌ها': englishToPersianNumbers(stats.totalLeaves.toString())
+      };
+    });
+
+    // Create detailed leaves data
+    const leavesData = filteredLeaves.map(leave => {
       const employee = employees.find(emp => emp.id === leave.employee_id);
       return {
         'نام کارمند': employee ? `${employee.name} ${employee.last_name}` : 'نامشخص',
-        'کد پرسنلی': employee?.employee_id || '-',
+        'کد پرسنلی': employee ? englishToPersianNumbers(employee.employee_id) : '-',
         'سمت': employee?.position || '-',
         'نوع مرخصی': leave.type === 'daily' ? 'روزانه' : 'ساعتی',
         'دسته‌بندی': leave.leave_category === 'medical' ? 'استعلاجی' : 'استحقاقی',
         'تاریخ شروع': formatPersianDate(new Date(leave.start_date)),
         'تاریخ پایان': formatPersianDate(new Date(leave.end_date)),
-        'ساعت شروع': leave.start_time || '-',
-        'ساعت پایان': leave.end_time || '-',
+        'ساعت شروع': leave.start_time ? englishToPersianNumbers(leave.start_time) : '-',
+        'ساعت پایان': leave.end_time ? englishToPersianNumbers(leave.end_time) : '-',
         'مدت زمان': leave.type === 'daily' 
-          ? `${leave.duration} روز`
+          ? `${englishToPersianNumbers(leave.duration.toString())} روز`
           : formatDuration(leave.duration),
         'توضیحات': leave.description || '-',
         'وضعیت': leave.is_modified ? 'ویرایش شده' : 'اصلی'
       };
     });
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    
-    // Set RTL direction for the worksheet
-    if (!ws['!cols']) ws['!cols'] = [];
-    ws['!dir'] = 'rtl';
-    
+    // Create workbook
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'گزارش مرخصی‌ها');
+    
+    // Add employee summary sheet
+    const ws1 = XLSX.utils.json_to_sheet(employeeSummaryData);
+    ws1['!dir'] = 'rtl';
+    if (!ws1['!cols']) ws1['!cols'] = [];
+    // Set column widths for better display
+    ws1['!cols'] = [
+      { wch: 20 }, // نام کارمند
+      { wch: 15 }, // کد پرسنلی
+      { wch: 20 }, // سمت
+      { wch: 25 }, // مرخصی روزانه
+      { wch: 25 }, // مرخصی ساعتی
+      { wch: 25 }, // کل استفاده شده
+      { wch: 20 }, // مانده
+      { wch: 15 }  // تعداد
+    ];
+    XLSX.utils.book_append_sheet(wb, ws1, 'خلاصه کارمندان');
+    
+    // Add detailed leaves sheet
+    const ws2 = XLSX.utils.json_to_sheet(leavesData);
+    ws2['!dir'] = 'rtl';
+    if (!ws2['!cols']) ws2['!cols'] = [];
+    ws2['!cols'] = [
+      { wch: 20 }, // نام کارمند
+      { wch: 15 }, // کد پرسنلی
+      { wch: 20 }, // سمت
+      { wch: 15 }, // نوع
+      { wch: 15 }, // دسته‌بندی
+      { wch: 15 }, // تاریخ شروع
+      { wch: 15 }, // تاریخ پایان
+      { wch: 12 }, // ساعت شروع
+      { wch: 12 }, // ساعت پایان
+      { wch: 15 }, // مدت زمان
+      { wch: 30 }, // توضیحات
+      { wch: 15 }  // وضعیت
+    ];
+    XLSX.utils.book_append_sheet(wb, ws2, 'جزئیات مرخصی‌ها');
     
     // Set workbook properties for RTL
     wb.Props = {
@@ -112,7 +159,10 @@ const Reports: React.FC = () => {
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     
-    saveAs(dataBlob, `گزارش-مرخصی-${selectedYear}.xlsx`);
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    saveAs(dataBlob, `گزارش-مرخصی-${englishToPersianNumbers(selectedYear.toString())}-${timestamp}.xlsx`);
   };
 
   return (

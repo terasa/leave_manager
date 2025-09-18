@@ -28,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onLo
     { id: 'employees', label: 'مدیریت کارمندان', icon: Users },
     { id: 'leaves', label: 'ثبت مرخصی', icon: Calendar },
     { id: 'reports', label: 'گزارش‌گیری', icon: BarChart3 },
+    { id: 'backup', label: 'پشتیبان‌گیری', icon: FileText },
     ...(currentUser.role === 'admin' ? [
       { id: 'settings', label: 'تنظیمات', icon: Settings },
       { id: 'logs', label: 'لاگ سیستم', icon: FileText }

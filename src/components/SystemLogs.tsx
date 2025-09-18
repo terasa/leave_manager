@@ -3,7 +3,7 @@ import { FileText, Download, Filter, User, Calendar } from 'lucide-react';
 import { useLogger } from '../hooks/useLogger';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { englishToPersianNumbers, formatPersianDate } from '../utils/dateHelpers';
+import { englishToPersianNumbers, formatPersianDateTime } from '../utils/dateHelpers';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -35,7 +35,7 @@ const SystemLogs: React.FC = () => {
 
   const exportLogsToExcel = () => {
     const data = filteredLogs.map(log => ({
-      'تاریخ و زمان': new Date(log.timestamp).toLocaleString('fa-IR'),
+      'تاریخ و زمان': formatPersianDateTime(new Date(log.timestamp)),
       'کاربر': log.user_id,
       'عملیات': getActionLabel(log.action),
       'نوع موجودیت': getEntityTypeLabel(log.entity_type),
@@ -44,6 +44,7 @@ const SystemLogs: React.FC = () => {
 
     const ws = XLSX.utils.json_to_sheet(data);
     ws['!dir'] = 'rtl';
+    ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 50 }];
     
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'لاگ سیستم');
@@ -58,7 +59,10 @@ const SystemLogs: React.FC = () => {
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     
-    saveAs(dataBlob, `لاگ-سیستم-${new Date().toISOString().split('T')[0]}.xlsx`);
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    saveAs(dataBlob, `لاگ-سیستم-${timestamp}.xlsx`);
   };
 
   const getActionLabel = (action: string) => {
@@ -262,7 +266,7 @@ const SystemLogs: React.FC = () => {
                 {filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(log.timestamp).toLocaleString('fa-IR')}
+                      {formatPersianDateTime(new Date(log.timestamp))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {log.user_id}

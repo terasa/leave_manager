@@ -29,7 +29,23 @@ export const formatPersianDate = (date: Date): string => {
     'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
   ];
   
-  return `${jalaali.jd} ${months[jalaali.jm - 1]} ${jalaali.jy}`;
+  return `${englishToPersianNumbers(jalaali.jd.toString())} ${months[jalaali.jm - 1]} ${englishToPersianNumbers(jalaali.jy.toString())}`;
+};
+
+export const formatPersianDateTime = (date: Date): string => {
+  const jalaali = toJalaali(date);
+  const months = [
+    'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+    'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+  ];
+  
+  const time = date.toLocaleTimeString('fa-IR', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  });
+  
+  return `${englishToPersianNumbers(jalaali.jd.toString())} ${months[jalaali.jm - 1]} ${englishToPersianNumbers(jalaali.jy.toString())} - ${time}`;
 };
 
 export const formatTime = (time: string): string => {

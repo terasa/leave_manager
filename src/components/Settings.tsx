@@ -3,7 +3,7 @@ import { Save, Lock, Settings as SettingsIcon, Calendar, User, Plus, Edit2, Tras
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useAuth } from '../hooks/useAuth';
 import { User as UserType } from '../types';
-import { englishToPersianNumbers, persianToEnglishNumbers } from '../utils/dateHelpers';
+import { englishToPersianNumbers, persianToEnglishNumbers, formatPersianDate } from '../utils/dateHelpers';
 
 const Settings: React.FC = () => {
   const { settings, saveSettings } = useLocalStorage();
@@ -314,7 +314,7 @@ const Settings: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(user.created_at).toLocaleDateString('fa-IR')}
+                        {formatPersianDate(new Date(user.created_at))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex gap-2">
@@ -534,7 +534,7 @@ const Settings: React.FC = () => {
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-2">آخرین بروزرسانی</h4>
               <p className="text-sm text-gray-900">
-                {new Date(settings.updated_at).toLocaleDateString('fa-IR')}
+                {formatPersianDate(new Date(settings.updated_at))}
               </p>
             </div>
             
