@@ -14,20 +14,6 @@ const SystemLogs: React.FC = () => {
   const [selectedAction, setSelectedAction] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
 
-  if (currentUser?.role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <FileText className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">دسترسی محدود</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            فقط مدیران می‌توانند لاگ‌های سیستم را مشاهده کنند.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const logs = getLogs(true);
   
   const filteredLogs = logs.filter(log => {
@@ -242,7 +228,8 @@ const SystemLogs: React.FC = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      {currentUser?.role === 'admin' ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">
             جزئیات لاگ‌ها ({englishToPersianNumbers(filteredLogs.length.toString())} مورد)
@@ -305,7 +292,21 @@ const SystemLogs: React.FC = () => {
             </p>
           </div>
         )}
-      </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">لاگ سیستم</h3>
+          </div>
+          <div className="px-6 py-12 text-center">
+            <FileText className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">دسترسی محدود</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              فقط مدیران می‌توانند لاگ‌های سیستم را مشاهده کنند.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

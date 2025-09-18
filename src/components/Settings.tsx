@@ -9,21 +9,6 @@ const Settings: React.FC = () => {
   const { settings, saveSettings } = useLocalStorage();
   const { changePassword, addUser, updateUser, deleteUser, getUsers, currentUser } = useAuth();
 
-  // بررسی دسترسی ادمین
-  if (currentUser?.role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center h-64" style={{ direction: 'rtl' }}>
-        <div className="text-center">
-          <Settings className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">دسترسی محدود</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            فقط مدیران می‌توانند به تنظیمات دسترسی داشته باشند.
-          </p>
-        </div>
-      </div>
-    );
-  }
-  
   const [annualLeaveLimit, setAnnualLeaveLimit] = useState(settings.annual_leave_limit.toString());
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -275,7 +260,7 @@ const Settings: React.FC = () => {
       </div>
 
       {/* User Management - Admin Only */}
-      {currentUser?.role === 'admin' && (
+      {currentUser?.role === 'admin' ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
@@ -356,6 +341,22 @@ const Settings: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+              <User className="w-5 h-5" />
+              مدیریت کاربران
+            </h3>
+          </div>
+          <div className="p-6 text-center">
+            <User className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">دسترسی محدود</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              فقط مدیران می‌توانند کاربران را مدیریت کنند.
+            </p>
           </div>
         </div>
       )}
