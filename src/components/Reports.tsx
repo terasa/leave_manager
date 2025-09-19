@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Download, Filter, Calendar, User, BarChart } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { toJalaali } from 'jalaali-js';
 import { englishToPersianNumbers, formatPersianDate, formatDuration, formatLeaveBalance } from '../utils/dateHelpers';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -8,7 +9,7 @@ import { saveAs } from 'file-saver';
 const Reports: React.FC = () => {
   const { employees, leaves, settings } = useLocalStorage();
   const [selectedEmployee, setSelectedEmployee] = useState('');
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(1403);
   const [selectedMonth, setSelectedMonth] = useState('');
 
   const months = [
@@ -28,7 +29,8 @@ const Reports: React.FC = () => {
 
   const filteredLeaves = leaves.filter(leave => {
     const leaveDate = new Date(leave.start_date);
-    const leaveYear = leaveDate.getFullYear();
+    const leaveJalaali = toJalaali(leaveDate);
+    const leaveYear = leaveJalaali.jy;
     
     let matchesEmployee = true;
     let matchesYear = true;
@@ -43,7 +45,7 @@ const Reports: React.FC = () => {
     }
 
     if (selectedMonth) {
-      const leaveMonth = leaveDate.getMonth() + 1;
+      const leaveMonth = leaveJalaali.jm;
       matchesMonth = leaveMonth === parseInt(selectedMonth);
     }
 
@@ -156,12 +158,19 @@ const Reports: React.FC = () => {
       CreatedDate: new Date()
     };
     
+    // Set RTL direction for all sheets
+    wb.Workbook = wb.Workbook || {};
+    wb.Workbook.Views = [{
+      RTL: true
+    }];
+    
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
     
+    const jalaaliYear = toJalaali(new Date()).jy;
     saveAs(dataBlob, `گزارش-مرخصی-${englishToPersianNumbers(selectedYear.toString())}-${timestamp}.xlsx`);
   };
 
@@ -217,7 +226,7 @@ const Reports: React.FC = () => {
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
               className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              {[2023, 2024, 2025, 2026].map(year => (
+              {[1402, 1403, 1404, 1405].map(year => (
                 <option key={year} value={year}>
                   {englishToPersianNumbers(year.toString())}
                 </option>

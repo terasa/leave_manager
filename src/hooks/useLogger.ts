@@ -16,7 +16,12 @@ const encryptLog = (data: string): string => {
       String.fromCharCode(char.charCodeAt(0) + 3)
     ).join('');
   };
-  return utf8ToBase64String(cipher(data));
+  try {
+    return utf8ToBase64String(cipher(data));
+  } catch (error) {
+    console.error('Error encrypting log:', error);
+    return utf8ToBase64String(data); // fallback without cipher
+  }
 };
 
 const decryptLog = (encryptedData: string): string => {
@@ -26,9 +31,16 @@ const decryptLog = (encryptedData: string): string => {
     ).join('');
   };
   try {
-    return decipher(base64ToUtf8String(encryptedData));
-  } catch {
-    return '';
+    const decrypted = base64ToUtf8String(encryptedData);
+    return decipher(decrypted);
+  } catch (error) {
+    console.error('Error decrypting log:', error);
+    try {
+      // Try without decipher as fallback
+      return base64ToUtf8String(encryptedData);
+    } catch {
+      return '';
+    }
   }
 };
 

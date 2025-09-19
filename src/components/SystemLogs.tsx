@@ -11,10 +11,12 @@ const SystemLogs: React.FC = () => {
   const { currentUser } = useAuth();
   const { getLogs } = useLogger();
   const { employees } = useLocalStorage();
+  const { getUsers } = useAuth();
   const [selectedAction, setSelectedAction] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
 
   const logs = getLogs(true);
+  const users = getUsers();
   
   const filteredLogs = logs.filter(log => {
     let matchesAction = true;
@@ -34,20 +36,30 @@ const SystemLogs: React.FC = () => {
   });
 
   const exportLogsToExcel = () => {
+    const getUserName = (userId: string) => {
+      const user = users.find(u => u.id === userId);
+      return user ? user.username : userId;
+    };
+    
     const data = filteredLogs.map(log => ({
       'تاریخ و زمان': formatPersianDateTime(new Date(log.timestamp)),
-      'کاربر': log.user_id,
+      'کاربر': getUserName(log.user_id),
       'عملیات': getActionLabel(log.action),
       'نوع موجودیت': getEntityTypeLabel(log.entity_type),
       'جزئیات': log.details
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
-    ws['!dir'] = 'rtl';
     ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 50 }];
     
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'لاگ سیستم');
+    
+    // Set RTL direction for workbook
+    wb.Workbook = wb.Workbook || {};
+    wb.Workbook.Views = [{
+      RTL: true
+    }];
     
     wb.Props = {
       Title: 'لاگ سیستم',
@@ -269,7 +281,10 @@ const SystemLogs: React.FC = () => {
                       {formatPersianDateTime(new Date(log.timestamp))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {log.user_id}
+                      {(() => {
+                        const user = users.find(u => u.id === log.user_id);
+                        return user ? user.username : log.user_id;
+                      })()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getActionColor(log.action)}`}>
