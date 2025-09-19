@@ -185,57 +185,12 @@ const Reports: React.FC = () => {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
           if (!ws2[cellAddress]) continue;
           
-          let fontColor = { rgb: '374151' }; // رنگ پیش‌فرض
-          let bgColor = { rgb: 'FFFFFF' }; // پس‌زمینه سفید
-          let isBold = false;
-          
-          // ردیف اول (هدر)
-          if (R === 0) {
-            bgColor = { rgb: 'E5E7EB' }; // خاکستری روشن
-            fontColor = { rgb: '374151' }; // خاکستری تیره
-            isBold = true;
-          } else {
-            // برای ردیف‌های داده
-            const dataIndex = R - 1;
-            if (dataIndex < leaves.length) {
-              const leave = leaves[dataIndex];
-              
-              // پیدا کردن index ستون "نوع مرخصی" و "دسته‌بندی"
-              const headers = Object.keys(leavesData[0] || {});
-              const typeColumnIndex = headers.indexOf('نوع مرخصی');
-              const categoryColumnIndex = headers.indexOf('دسته‌بندی');
-              
-              // ستون نوع مرخصی
-              if (C === typeColumnIndex) {
-                if (leave.type === 'daily') {
-                  fontColor = { rgb: '059669' }; // سبز
-                } else {
-                  fontColor = { rgb: '2563EB' }; // آبی
-                }
-              }
-              
-              // ستون دسته‌بندی
-              if (C === categoryColumnIndex) {
-                if (leave.leave_category === 'entitled') {
-                  fontColor = { rgb: '7C3AED' }; // بنفش
-                } else {
-                  fontColor = { rgb: 'DC2626' }; // قرمز
-                }
-              }
-            }
-          }
-          
-          ws2[cellAddress].s = {
+          // تنظیمات پایه
+          let cellStyle: any = {
             alignment: {
               horizontal: 'center',
               vertical: 'center',
               readingOrder: 2
-            },
-            fill: { fgColor: bgColor },
-            font: {
-              bold: isBold,
-              color: fontColor,
-              sz: R === 0 ? 12 : 11
             },
             border: {
               top: { style: 'thin', color: { rgb: '000000' } },
@@ -244,6 +199,43 @@ const Reports: React.FC = () => {
               right: { style: 'thin', color: { rgb: '000000' } }
             }
           };
+
+          // ردیف اول (هدر)
+          if (R === 0) {
+            cellStyle.fill = { fgColor: { rgb: 'E5E7EB' } };
+            cellStyle.font = { bold: true, color: { rgb: '374151' }, sz: 12 };
+          } else {
+            // ردیف‌های داده
+            cellStyle.fill = { fgColor: { rgb: 'FFFFFF' } };
+            cellStyle.font = { sz: 11, color: { rgb: '374151' } };
+            
+            // رنگ‌بندی خاص برای ستون‌های مشخص
+            const dataIndex = R - 1;
+            if (dataIndex >= 0 && dataIndex < leaves.length) {
+              const leave = leaves[dataIndex];
+              const headers = Object.keys(leavesData[0] || {});
+              
+              // ستون نوع مرخصی
+              if (C === headers.indexOf('نوع مرخصی')) {
+                if (leave.type === 'daily') {
+                  cellStyle.font.color = { rgb: '059669' }; // سبز
+                } else {
+                  cellStyle.font.color = { rgb: '2563EB' }; // آبی
+                }
+              }
+              
+              // ستون دسته‌بندی
+              if (C === headers.indexOf('دسته‌بندی')) {
+                if (leave.leave_category === 'entitled') {
+                  cellStyle.font.color = { rgb: '7C3AED' }; // بنفش
+                } else {
+                  cellStyle.font.color = { rgb: 'DC2626' }; // قرمز
+                }
+              }
+            }
+          }
+
+          ws2[cellAddress].s = cellStyle;
         }
       }
     }
