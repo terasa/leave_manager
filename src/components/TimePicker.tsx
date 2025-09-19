@@ -25,19 +25,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, classNa
       </label>
       <div className="flex gap-2">
         <select
-          value={hour}
-          onChange={(e) => handleTimeChange(e.target.value, minute)}
-          className="block w-20 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-center"
-          style={{ direction: 'ltr' }}
-        >
-          {hours.map((h) => (
-            <option key={h} value={h}>
-              {englishToPersianNumbers(h)}
-            </option>
-          ))}
-        </select>
-        <span className="flex items-center text-gray-500">:</span>
-        <select
           value={minute}
           onChange={(e) => handleTimeChange(hour, e.target.value)}
           className="block w-20 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-center"
@@ -46,6 +33,19 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, classNa
           {minutes.map((m) => (
             <option key={m} value={m}>
               {englishToPersianNumbers(m)}
+            </option>
+          ))}
+        </select>
+        <span className="flex items-center text-gray-500">:</span>
+        <select
+          value={hour}
+          onChange={(e) => handleTimeChange(e.target.value, minute)}
+          className="block w-20 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-center"
+          style={{ direction: 'ltr' }}
+        >
+          {hours.map((h) => (
+            <option key={h} value={h}>
+              {englishToPersianNumbers(h)}
             </option>
           ))}
         </select>
