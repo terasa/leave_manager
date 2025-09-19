@@ -91,7 +91,7 @@ const Reports: React.FC = () => {
     workbook.created = new Date();
 
     // Employee Summary Sheet
-    const ws1 = workbook.addWorksheet('خلاصه کارمندان');
+    const ws1 = workbook.addWorksheet('خلاصه مرخصی کارمندان');
     
     // تنظیم راست به چپ
     ws1.views = [{ rightToLeft: true }];
