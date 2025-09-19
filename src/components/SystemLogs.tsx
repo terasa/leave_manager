@@ -303,142 +303,142 @@ const SystemLogs: React.FC = () => {
       {/* Logs Table */}
       {currentUser?.role === 'admin' ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">
-            جزئیات لاگ‌ها ({englishToPersianNumbers(filteredLogs.length.toString())} مورد)
-          </h3>
-        </div>
-        
-        {filteredLogs.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    تاریخ و زمان
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    کاربر
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    عملیات
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    نوع
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    جزئیات
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    اطلاعات بیشتر
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {currentLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
-                    setSelectedLog(log);
-                    setShowLogDetails(true);
-                  }}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatPersianDateTime(new Date(log.timestamp))}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {log.username || (() => {
-                        const user = users.find(u => u.id === log.user_id);
-                        return user ? user.username : log.user_id;
-                      })()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getActionColor(log.action)}`}>
-                        {getActionLabel(log.action)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getEntityTypeLabel(log.entity_type)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                      {log.details}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedLog(log);
-                          setShowLogDetails(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">
+              جزئیات لاگ‌ها ({englishToPersianNumbers(filteredLogs.length.toString())} مورد)
+            </h3>
           </div>
           
-          {/* Pagination */
-          {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                نمایش {englishToPersianNumbers((startIndex + 1).toString())} تا {englishToPersianNumbers(Math.min(endIndex, filteredLogs.length).toString())} از {englishToPersianNumbers(filteredLogs.length.toString())} لاگ
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  قبلی
-                </button>
-                
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let page;
-                  if (totalPages <= 5) {
-                    page = i + 1;
-                  } else if (currentPage <= 3) {
-                    page = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    page = totalPages - 4 + i;
-                  } else {
-                    page = currentPage - 2 + i;
-                  }
+          {filteredLogs.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      تاریخ و زمان
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      کاربر
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      عملیات
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      نوع
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      جزئیات
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      اطلاعات بیشتر
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
+                      setSelectedLog(log);
+                      setShowLogDetails(true);
+                    }}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatPersianDateTime(new Date(log.timestamp))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {log.username || (() => {
+                          const user = users.find(u => u.id === log.user_id);
+                          return user ? user.username : log.user_id;
+                        })()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getActionColor(log.action)}`}>
+                          {getActionLabel(log.action)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {getEntityTypeLabel(log.entity_type)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                        {log.details}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedLog(log);
+                            setShowLogDetails(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <Info className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  نمایش {englishToPersianNumbers((startIndex + 1).toString())} تا {englishToPersianNumbers(Math.min(endIndex, filteredLogs.length).toString())} از {englishToPersianNumbers(filteredLogs.length.toString())} لاگ
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    قبلی
+                  </button>
                   
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 text-sm border rounded-md ${
-                        currentPage === page
-                          ? 'bg-blue-500 text-white border-blue-500'
-                          : 'border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {englishToPersianNumbers(page.toString())}
-                    </button>
-                  );
-                })}
-                
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  بعدی
-                </button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let page;
+                    if (totalPages <= 5) {
+                      page = i + 1;
+                    } else if (currentPage <= 3) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i;
+                    } else {
+                      page = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 text-sm border rounded-md ${
+                          currentPage === page
+                            ? 'bg-blue-500 text-white border-blue-500'
+                            : 'border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {englishToPersianNumbers(page.toString())}
+                      </button>
+                    );
+                  })}
+                  
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    بعدی
+                  </button>
+                </div>
               </div>
+            )}
+          ) : (
+            <div className="px-6 py-12 text-center">
+              <FileText className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">لاگی یافت نشد</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                با فیلترهای انتخاب شده لاگی یافت نشد.
+              </p>
             </div>
           )}
-        ) : (
-          <div className="px-6 py-12 text-center">
-            <FileText className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">لاگی یافت نشد</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              با فیلترهای انتخاب شده لاگی یافت نشد.
-            </p>
-          </div>
-        )}
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
