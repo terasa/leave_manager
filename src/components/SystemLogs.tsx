@@ -215,7 +215,7 @@ const SystemLogs: React.FC = () => {
                 {selectedDate ? formatPersianDate(new Date(selectedDate)) : 'انتخاب تاریخ'}
               </button>
               {showCalendar && (
-                <div className="mt-2 relative z-10">
+                <div className="absolute mt-2 z-50 bg-white shadow-lg rounded-lg border border-gray-200">
                   <PersianCalendar
                     selectedDate={selectedDate ? new Date(selectedDate) : undefined}
                     onDateSelect={(date) => {
