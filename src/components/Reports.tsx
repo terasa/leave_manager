@@ -3,7 +3,7 @@ import { Download, Filter, Calendar, User, BarChart } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toJalaali } from 'jalaali-js';
 import { englishToPersianNumbers, formatPersianDate, formatDuration, formatLeaveBalance } from '../utils/dateHelpers';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 const Reports: React.FC = () => {
@@ -83,173 +83,126 @@ const Reports: React.FC = () => {
     };
   };
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    
     // Create employee summary data
     const employeeSummaryData = employees.map(employee => {
       const stats = getEmployeeStats(employee.id);
-      return {
-        'نام کارمند': `${employee.name} ${employee.last_name}`,
-        'کد پرسنلی': englishToPersianNumbers(employee.employee_id),
-        'سمت': employee.position,
-        'مرخصی روزانه استفاده شده': `${englishToPersianNumbers(stats.totalDailyDays.toString())} روز`,
-        'مرخصی ساعتی استفاده شده': formatDuration(stats.totalHourlyMinutes / 60),
-        'کل مرخصی استفاده شده': formatLeaveBalance((stats.totalDailyDays * 8 * 60) + stats.totalHourlyMinutes),
-        'مانده مرخصی': formatLeaveBalance(stats.remainingMinutes),
-        'کل تعداد مرخصی‌ها': englishToPersianNumbers(stats.totalLeaves.toString())
-      };
+      return [
+        `${employee.name} ${employee.last_name}`,
+        englishToPersianNumbers(employee.employee_id),
+        employee.position,
+        `${englishToPersianNumbers(stats.totalDailyDays.toString())} روز`,
+        formatDuration(stats.totalHourlyMinutes / 60),
+        formatLeaveBalance((stats.totalDailyDays * 8 * 60) + stats.totalHourlyMinutes),
+        formatLeaveBalance(stats.remainingMinutes),
+        englishToPersianNumbers(stats.totalLeaves.toString())
+      ];
     });
+
+    // Employee Summary Sheet
+    const ws1 = workbook.addWorksheet('خلاصه کارمندان');
+    ws1.views = [{ rightToLeft: true }];
+    
+    // Add header row
+    const headerRow1 = ws1.addRow(['نام کارمند', 'کد پرسنلی', 'سمت', 'مرخصی روزانه استفاده شده', 'مرخصی ساعتی استفاده شده', 'کل مرخصی استفاده شده', 'مانده مرخصی', 'کل تعداد مرخصی‌ها']);
+    
+    // Style header row
+    headerRow1.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4F46E5' }
+    };
+    headerRow1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow1.alignment = { horizontal: 'center', vertical: 'middle' };
+    
+    // Add data rows
+    employeeSummaryData.forEach(rowData => {
+      const dataRow = ws1.addRow(rowData);
+      dataRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+    
+    // Set column widths
+    ws1.columns = [
+      { width: 20 }, { width: 15 }, { width: 20 }, { width: 25 }, 
+      { width: 25 }, { width: 25 }, { width: 20 }, { width: 15 }
+    ];
 
     // Create detailed leaves data
     const leavesData = leaves.map(leave => {
       const employee = employees.find(emp => emp.id === leave.employee_id);
-      return {
-        'نام کارمند': employee ? `${employee.name} ${employee.last_name}` : 'نامشخص',
-        'کد پرسنلی': employee ? englishToPersianNumbers(employee.employee_id) : '-',
-        'سمت': employee?.position || '-',
-        'نوع مرخصی': leave.type === 'daily' ? 'روزانه' : 'ساعتی',
-        'دسته‌بندی': leave.leave_category === 'medical' ? 'استعلاجی' : 'استحقاقی',
-        'تاریخ شروع': formatPersianDate(new Date(leave.start_date)),
-        'تاریخ پایان': formatPersianDate(new Date(leave.end_date)),
-        'ساعت شروع': leave.start_time ? englishToPersianNumbers(leave.start_time) : '-',
-        'ساعت پایان': leave.end_time ? englishToPersianNumbers(leave.end_time) : '-',
-        'مدت زمان': leave.type === 'daily' 
+      return [
+        employee ? `${employee.name} ${employee.last_name}` : 'نامشخص',
+        employee ? englishToPersianNumbers(employee.employee_id) : '-',
+        employee?.position || '-',
+        leave.type === 'daily' ? 'روزانه' : 'ساعتی',
+        leave.leave_category === 'medical' ? 'استعلاجی' : 'استحقاقی',
+        formatPersianDate(new Date(leave.start_date)),
+        formatPersianDate(new Date(leave.end_date)),
+        leave.start_time ? englishToPersianNumbers(leave.start_time) : '-',
+        leave.end_time ? englishToPersianNumbers(leave.end_time) : '-',
+        leave.type === 'daily' 
           ? `${englishToPersianNumbers(leave.duration.toString())} روز`
           : formatDuration(leave.duration),
-        'توضیحات': leave.description || '-',
-        'وضعیت': leave.is_modified ? 'ویرایش شده' : 'اصلی'
-      };
+        leave.description || '-',
+        leave.is_modified ? 'ویرایش شده' : 'اصلی'
+      ];
     });
 
     // Create workbook
     const wb = XLSX.utils.book_new();
+    // Details Sheet
+    const ws2 = workbook.addWorksheet('جزئیات مرخصی‌ها');
+    ws2.views = [{ rightToLeft: true }];
     
-    // Set workbook direction to RTL
-    wb.Workbook = {
-      Views: [{ RTL: true }],
-      Styles: {}
+    // Add header row
+    const headerRow2 = ws2.addRow(['نام کارمند', 'کد پرسنلی', 'سمت', 'نوع مرخصی', 'دسته‌بندی', 'تاریخ شروع', 'تاریخ پایان', 'ساعت شروع', 'ساعت پایان', 'مدت زمان', 'توضیحات', 'وضعیت']);
+    
+    // Style header row
+    headerRow2.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFDC2626' }
     };
+    headerRow2.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow2.alignment = { horizontal: 'center', vertical: 'middle' };
     
-    // Add employee summary sheet
-    const ws1 = XLSX.utils.json_to_sheet(employeeSummaryData);
-    
-    // Set column widths for employee summary sheet
-    ws1['!cols'] = [
-      { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 25 }, 
-      { wch: 25 }, { wch: 25 }, { wch: 20 }, { wch: 15 }
-    ];
-    
-    // Apply styles to employee summary sheet
-    if (ws1['!ref']) {
-      const ws1Range = XLSX.utils.decode_range(ws1['!ref']);
-      for (let R = ws1Range.s.r; R <= ws1Range.e.r; ++R) {
-        for (let C = ws1Range.s.c; C <= ws1Range.e.c; ++C) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          if (!ws1[cellAddress]) continue;
-          
-          ws1[cellAddress].s = {
-            alignment: {
-              horizontal: 'center',
-              vertical: 'center',
-              readingOrder: 2,
-              wrapText: true
-            },
-            fill: R === 0 ? { fgColor: { rgb: "4F46E5" } } : { fgColor: { rgb: "FFFFFF" } }, // بنفش برای هدر
-            font: R === 0 ? { bold: true, color: { rgb: "FFFFFF" }, sz: 12 } : { sz: 11, color: { rgb: "374151" } }, // فونت سفید برای هدر
-            border: {
-              top: { style: 'thin', color: { rgb: '000000' } },
-              bottom: { style: 'thin', color: { rgb: '000000' } },
-              left: { style: 'thin', color: { rgb: '000000' } },
-              right: { style: 'thin', color: { rgb: '000000' } }
-            }
-          };
-        }
-      }
-    }
-    
-    XLSX.utils.book_append_sheet(wb, ws1, 'خلاصه کارمندان');
-    
-    // Add detailed leaves sheet
-    const ws2 = XLSX.utils.json_to_sheet(leavesData);
-    
-    // Set column widths for detailed leaves sheet
-    ws2['!cols'] = [
-      { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, 
-      { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, 
-      { wch: 30 }, { wch: 15 }
-    ];
-    
-    // Apply RTL and styling to detailed leaves sheet
-    if (ws2['!ref']) {
-      const range2 = XLSX.utils.decode_range(ws2['!ref']);
-      const headers2 = Object.keys(leavesData[0] || {});
-      const leaveTypeColIndex = headers2.indexOf('نوع مرخصی');
-      const leaveCategoryColIndex = headers2.indexOf('دسته‌بندی');
+    // Add data rows with color coding
+    leavesData.forEach((rowData, index) => {
+      const dataRow = ws2.addRow(rowData);
+      dataRow.alignment = { horizontal: 'center', vertical: 'middle' };
       
-      for (let R = range2.s.r; R <= range2.e.r; ++R) {
-        for (let C = range2.s.c; C <= range2.e.c; ++C) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          if (!ws2[cellAddress]) continue;
-          
-          // Base style for all cells
-          ws2[cellAddress].s = {
-            alignment: {
-              horizontal: 'center',
-              vertical: 'center',
-              readingOrder: 2
-            },
-            border: {
-              top: { style: 'thin', color: { rgb: '000000' } },
-              bottom: { style: 'thin', color: { rgb: '000000' } },
-              left: { style: 'thin', color: { rgb: '000000' } },
-              right: { style: 'thin', color: { rgb: '000000' } }
-            }
-          };
-          
-          // Header row styling
-          if (R === 0) {
-            ws2[cellAddress].s.fill = { fgColor: { rgb: 'DC2626' } }; // قرمز برای هدر
-            ws2[cellAddress].s.font = { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 }; // فونت سفید برای هدر
-          } else {
-            // Data rows
-            ws2[cellAddress].s.fill = { fgColor: { rgb: 'FFFFFF' } }; // پس زمینه سفید برای داده ها
-            ws2[cellAddress].s.font = { sz: 11, color: { rgb: '374151' } }; // فونت خاکستری تیره برای داده ها
-            
-            // Special coloring for specific columns
-            const dataRowIndex = R - 1;
-            if (dataRowIndex >= 0 && dataRowIndex < leavesData.length) {
-              // نوع مرخصی column - تغییر فقط رنگ فونت
-              if (C === leaveTypeColIndex) {
-                const cellValue = ws2[cellAddress].v;
-                if (cellValue === 'روزانه') {
-                  ws2[cellAddress].s.font = { sz: 11, color: { rgb: '059669' }, bold: true }; // سبز
-                } else if (cellValue === 'ساعتی') {
-                  ws2[cellAddress].s.font = { sz: 11, color: { rgb: '2563EB' }, bold: true }; // آبی
-                }
-              }
-              
-              // دسته‌بندی column - تغییر فقط رنگ فونت
-              if (C === leaveCategoryColIndex) {
-                const cellValue = ws2[cellAddress].v;
-                if (cellValue === 'استحقاقی') {
-                  ws2[cellAddress].s.font = { sz: 11, color: { rgb: '7C3AED' }, bold: true }; // بنفش
-                } else if (cellValue === 'استعلاجی') {
-                  ws2[cellAddress].s.font = { sz: 11, color: { rgb: 'DC2626' }, bold: true }; // قرمز
-                }
-              }
-            }
-          }
-        }
+      // Color coding for نوع مرخصی (column 4)
+      const leaveTypeCell = dataRow.getCell(4);
+      if (rowData[3] === 'روزانه') {
+        leaveTypeCell.font = { color: { argb: 'FF059669' }, bold: true };
+      } else if (rowData[3] === 'ساعتی') {
+        leaveTypeCell.font = { color: { argb: 'FF2563EB' }, bold: true };
       }
-    }
+      
+      // Color coding for دسته‌بندی (column 5)
+      const categoryCell = dataRow.getCell(5);
+      if (rowData[4] === 'استحقاقی') {
+        categoryCell.font = { color: { argb: 'FF7C3AED' }, bold: true };
+      } else if (rowData[4] === 'استعلاجی') {
+        categoryCell.font = { color: { argb: 'FFDC2626' }, bold: true };
+      }
+    });
     
-    XLSX.utils.book_append_sheet(wb, ws2, 'جزئیات مرخصی‌ها');
+    // Set column widths
+    ws2.columns = [
+      { width: 20 }, { width: 15 }, { width: 20 }, { width: 15 }, { width: 15 }, 
+      { width: 15 }, { width: 15 }, { width: 12 }, { width: 12 }, { width: 15 }, 
+      { width: 30 }, { width: 15 }
+    ];
     
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true });
-    const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const buffer = await workbook.xlsx.writeBuffer();
     
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
     
+    const dataBlob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(dataBlob, `گزارش-مرخصی-${englishToPersianNumbers(selectedYear.toString())}-${timestamp}.xlsx`);
   };
 
