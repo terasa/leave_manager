@@ -3,7 +3,6 @@ import { Download, Filter, Calendar, User, BarChart } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toJalaali } from 'jalaali-js';
 import { englishToPersianNumbers, formatPersianDate, formatDuration, formatLeaveBalance } from '../utils/dateHelpers';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 const Reports: React.FC = () => {
@@ -150,8 +149,6 @@ const Reports: React.FC = () => {
       ];
     });
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
     // Details Sheet
     const ws2 = workbook.addWorksheet('جزئیات مرخصی‌ها');
     ws2.views = [{ rightToLeft: true }];
