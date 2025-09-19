@@ -378,7 +378,7 @@ const SystemLogs: React.FC = () => {
             </table>
           </div>
           
-          {/* Pagination */}
+          {/* Pagination */
           {totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
               <div className="text-sm text-gray-700">
