@@ -77,12 +77,10 @@ const Reports: React.FC = () => {
 
     return {
       totalDailyDays,
-    // Set workbook properties
-    workbook.creator = 'Leave Management System';
-    workbook.lastModifiedBy = 'Leave Management System';
-    workbook.created = new Date();
-    workbook.modified = new Date();
-    workbook.lastPrinted = new Date();
+      totalHourlyMinutes,
+      remainingMinutes,
+      totalLeaves: employeeLeaves.length
+    };
   };
 
   const exportToExcel = async () => {
@@ -233,15 +231,10 @@ const Reports: React.FC = () => {
     const buffer = await workbook.xlsx.writeBuffer();
     const uint8Array = new Uint8Array(buffer);
     
-    const uint8Array = new Uint8Array(buffer);
-    
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
     
     const dataBlob = new Blob([uint8Array], { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
-    });
-    
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
     });
     
@@ -687,7 +680,7 @@ const EmployeeSummaryTable: React.FC<{
       {totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            نمایش {englishToPersianNumbers(startIndex + 1)} تا {englishToPersianNumbers(Math.min(endIndex, employees.length))} از {englishToPersianNumbers(employees.length.toString())} کارمند
+            نمایش {englishToPersianNumbers((startIndex + 1).toString())} تا {englishToPersianNumbers(Math.min(endIndex, employees.length).toString())} از {englishToPersianNumbers(employees.length.toString())} کارمند
           </div>
           <div className="flex gap-2">
             <button
