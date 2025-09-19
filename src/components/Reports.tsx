@@ -185,34 +185,41 @@ const Reports: React.FC = () => {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
           if (!ws2[cellAddress]) continue;
           
-          let fontColor = '374151'; // رنگ پیش‌فرض
-          let bgColor = 'FFFFFF'; // پس‌زمینه سفید
+          let fontColor = { rgb: '374151' }; // رنگ پیش‌فرض
+          let bgColor = { rgb: 'FFFFFF' }; // پس‌زمینه سفید
+          let isBold = false;
           
           // ردیف اول (هدر)
           if (R === 0) {
-            bgColor = 'E5E7EB'; // خاکستری روشن
-            fontColor = '374151'; // خاکستری تیره
+            bgColor = { rgb: 'E5E7EB' }; // خاکستری روشن
+            fontColor = { rgb: '374151' }; // خاکستری تیره
+            isBold = true;
           } else {
             // برای ردیف‌های داده
             const dataIndex = R - 1;
             if (dataIndex < leaves.length) {
               const leave = leaves[dataIndex];
               
-              // ستون نوع مرخصی (ستون 4 - index 3)
-              if (C === 3) {
+              // پیدا کردن index ستون "نوع مرخصی" و "دسته‌بندی"
+              const headers = Object.keys(leavesData[0] || {});
+              const typeColumnIndex = headers.indexOf('نوع مرخصی');
+              const categoryColumnIndex = headers.indexOf('دسته‌بندی');
+              
+              // ستون نوع مرخصی
+              if (C === typeColumnIndex) {
                 if (leave.type === 'daily') {
-                  fontColor = '059669'; // سبز
+                  fontColor = { rgb: '059669' }; // سبز
                 } else {
-                  fontColor = '2563EB'; // آبی
+                  fontColor = { rgb: '2563EB' }; // آبی
                 }
               }
               
-              // ستون دسته‌بندی (ستون 5 - index 4)
-              if (C === 4) {
+              // ستون دسته‌بندی
+              if (C === categoryColumnIndex) {
                 if (leave.leave_category === 'entitled') {
-                  fontColor = '7C3AED'; // بنفش
+                  fontColor = { rgb: '7C3AED' }; // بنفش
                 } else {
-                  fontColor = 'DC2626'; // قرمز
+                  fontColor = { rgb: 'DC2626' }; // قرمز
                 }
               }
             }
@@ -222,11 +229,14 @@ const Reports: React.FC = () => {
             alignment: {
               horizontal: 'center',
               vertical: 'center',
-              readingOrder: 2,
-              wrapText: true
+              readingOrder: 2
             },
-            fill: { fgColor: { rgb: bgColor } },
-            font: R === 0 ? { bold: true, color: { rgb: fontColor }, sz: 12 } : { color: { rgb: fontColor }, sz: 11 },
+            fill: { fgColor: bgColor },
+            font: {
+              bold: isBold,
+              color: fontColor,
+              sz: R === 0 ? 12 : 11
+            },
             border: {
               top: { style: 'thin', color: { rgb: '000000' } },
               bottom: { style: 'thin', color: { rgb: '000000' } },
