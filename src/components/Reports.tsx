@@ -110,7 +110,7 @@ const Reports: React.FC = () => {
     // داده‌ها
     employees.forEach(employee => {
       const stats = getEmployeeStats(employee.id);
-      const row = ws1.addRow([
+      const dataRow = ws1.addRow([
         `${employee.name} ${employee.last_name}`,
         englishToPersianNumbers(employee.employee_id),
         employee.position,
@@ -121,22 +121,9 @@ const Reports: React.FC = () => {
         englishToPersianNumbers(stats.totalLeaves.toString())
       ]);
       
-      // تنظیم RTL برای تمام سلول‌های این ردیف
-      row.eachCell((cell, colNumber) => {
-        cell.alignment = { 
-          horizontal: 'center', 
-          vertical: 'middle',
-          readingOrder: 2
-        };
-        // برای ستون‌های خاص که مشکل RTL دارند
-        if ([4, 5, 6, 7].includes(colNumber)) {
-          cell.alignment = { 
-            horizontal: 'right', 
-            vertical: 'middle',
-            readingOrder: 2,
-            indent: 1
-          };
-        }
+      // تنظیم alignment برای هر سلول
+      dataRow.eachCell((cell) => {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
     });
     
@@ -164,7 +151,7 @@ const Reports: React.FC = () => {
     headerRow2.eachCell((cell) => {
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC2626' } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
     });
     
     // داده‌ها
@@ -184,22 +171,9 @@ const Reports: React.FC = () => {
         leave.description || '-'
       ]);
       
-      // تنظیم RTL برای تمام سلول‌های این ردیف
-      row.eachCell((cell, colNumber) => {
-        cell.alignment = { 
-          horizontal: 'center', 
-          vertical: 'middle',
-          readingOrder: 2
-        };
-        // برای ستون‌های خاص که مشکل RTL دارند
-        if ([6, 7, 8, 9, 10].includes(colNumber)) {
-          cell.alignment = { 
-            horizontal: 'right', 
-            vertical: 'middle',
-            readingOrder: 2,
-            indent: 1
-          };
-        }
+      // تنظیم alignment برای هر سلول
+      row.eachCell((cell) => {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
       
       // رنگ‌بندی
