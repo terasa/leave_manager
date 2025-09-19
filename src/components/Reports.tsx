@@ -164,6 +164,40 @@ const Reports: React.FC = () => {
       RTL: true
     }];
     
+    // تنظیم فرمت راست به چپ و وسط چین برای sheet اول
+    const ws1Range = XLSX.utils.decode_range(ws1['!ref'] || 'A1');
+    for (let R = ws1Range.s.r; R <= ws1Range.e.r; ++R) {
+      for (let C = ws1Range.s.c; C <= ws1Range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws1[cellAddress]) continue;
+        
+        ws1[cellAddress].s = {
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+            readingOrder: 2 // RTL
+          }
+        };
+      }
+    }
+    
+    // تنظیم فرمت راست به چپ و وسط چین برای sheet دوم
+    const ws2Range = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
+    for (let R = ws2Range.s.r; R <= ws2Range.e.r; ++R) {
+      for (let C = ws2Range.s.c; C <= ws2Range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws2[cellAddress]) continue;
+        
+        ws2[cellAddress].s = {
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+            readingOrder: 2 // RTL
+          }
+        };
+      }
+    }
+    
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     

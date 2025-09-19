@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Save, Lock, Settings as SettingsIcon, Calendar, User, Plus, Edit2, Trash2 } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useAuth } from '../hooks/useAuth';
+import { useLogger } from '../hooks/useLogger';
 import { User as UserType } from '../types';
 import { englishToPersianNumbers, persianToEnglishNumbers, formatPersianDate } from '../utils/dateHelpers';
 
 const Settings: React.FC = () => {
   const { settings, saveSettings } = useLocalStorage();
   const { changePassword, addUser, updateUser, deleteUser, getUsers, currentUser } = useAuth();
+  const { addLog } = useLogger();
 
   const [annualLeaveLimit, setAnnualLeaveLimit] = useState(settings.annual_leave_limit.toString());
   const [newPassword, setNewPassword] = useState('');
@@ -47,53 +49,10 @@ const Settings: React.FC = () => {
     
     saveSettings(newSettings);
     
-    // Add log for settings change
     if (currentUser) {
-      const addLog = (
-        userId: string,
-        action: 'create' | 'update' | 'delete' | 'login' | 'logout',
-        entityType: 'employee' | 'leave' | 'user' | 'settings',
-        entityId?: string,
-        details?: string
-      ) => {
-        const logEntry = {
-          id: Date.now().toString(),
-          user_id: userId,
-          action,
-          entity_type: entityType,
-          entity_id: entityId,
-          details: details || '',
-          timestamp: new Date().toISOString()
-        };
-
-        const existingLogs = localStorage.getItem('system_logs');
-        let logs = [];
-        
-        if (existingLogs) {
-          try {
-            const utf8ToBase64String = (str: string): string => {
-              return btoa(unescape(encodeURIComponent(str)));
-            };
-            const base64ToUtf8String = (str: string): string => {
-              return decodeURIComponent(escape(atob(str)));
-            };
-            const decryptedLogs = base64ToUtf8String(existingLogs);
-            logs = JSON.parse(decryptedLogs);
-          } catch {
-            logs = [];
-          }
-        }
-
-        logs.push(logEntry);
-        const utf8ToBase64String = (str: string): string => {
-          return btoa(unescape(encodeURIComponent(str)));
-        };
-        const encryptedLogs = utf8ToBase64String(JSON.stringify(logs));
-        localStorage.setItem('system_logs', encryptedLogs);
-      };
-      
-      addLog(currentUser.id, 'update', 'settings', settings.id, `سقف مرخصی سالانه به ${limit} روز تغییر کرد`);
+      addLog(currentUser.id, currentUser.username, 'update', 'settings', settings.id, { description: `سقف مرخصی سالانه به ${limit} روز تغییر کرد` });
     }
+    
     
     setSuccessMessage('تنظیمات با موفقیت ذخیره شد');
     setTimeout(() => setSuccessMessage(''), 3000);

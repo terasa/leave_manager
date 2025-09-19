@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Employee, Leave, Settings } from '../types';
 import { useLogger } from './useLogger';
+import { useAuth } from './useAuth';
 
 export const useLocalStorage = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -46,7 +47,7 @@ export const useLocalStorage = () => {
     localStorage.setItem('settings', JSON.stringify(newSettings));
   };
 
-  const addEmployee = (employee: Omit<Employee, 'id' | 'created_at'>, userId: string) => {
+  const addEmployee = (employee: Omit<Employee, 'id' | 'created_at'>, userId: string, username: string) => {
     const newEmployee: Employee = {
       ...employee,
       id: Date.now().toString(),
@@ -54,33 +55,34 @@ export const useLocalStorage = () => {
     };
     const newEmployees = [...employees, newEmployee];
     saveEmployees(newEmployees);
-    addLog(userId, 'create', 'employee', newEmployee.id, `کارمند ${employee.name} ${employee.last_name} اضافه شد`);
+    addLog(userId, username, 'create', 'employee', newEmployee.id, newEmployee);
     return newEmployee;
   };
 
-  const updateEmployee = (id: string, updates: Partial<Employee>, userId: string) => {
+  const updateEmployee = (id: string, updates: Partial<Employee>, userId: string, username: string) => {
     const oldEmployee = employees.find(emp => emp.id === id);
     const newEmployees = employees.map(emp => 
       emp.id === id ? { ...emp, ...updates } : emp
     );
     saveEmployees(newEmployees);
     if (oldEmployee) {
-      addLog(userId, 'update', 'employee', id, `کارمند ${oldEmployee.name} ${oldEmployee.last_name} ویرایش شد`);
+      const updatedEmployee = { ...oldEmployee, ...updates };
+      addLog(userId, username, 'update', 'employee', id, updatedEmployee, oldEmployee);
     }
   };
 
-  const deleteEmployee = (id: string, userId: string) => {
+  const deleteEmployee = (id: string, userId: string, username: string) => {
     const employee = employees.find(emp => emp.id === id);
     const newEmployees = employees.filter(emp => emp.id !== id);
     const newLeaves = leaves.filter(leave => leave.employee_id !== id);
     saveEmployees(newEmployees);
     saveLeaves(newLeaves);
     if (employee) {
-      addLog(userId, 'delete', 'employee', id, `کارمند ${employee.name} ${employee.last_name} حذف شد`);
+      addLog(userId, username, 'delete', 'employee', id, employee);
     }
   };
 
-  const addLeave = (leave: Omit<Leave, 'id' | 'created_at' | 'is_modified' | 'created_by'>, userId: string) => {
+  const addLeave = (leave: Omit<Leave, 'id' | 'created_at' | 'is_modified' | 'created_by'>, userId: string, username: string) => {
     const newLeave: Leave = {
       ...leave,
       id: Date.now().toString(),
@@ -91,11 +93,11 @@ export const useLocalStorage = () => {
     const newLeaves = [...leaves, newLeave];
     saveLeaves(newLeaves);
     const employee = employees.find(emp => emp.id === leave.employee_id);
-    addLog(userId, 'create', 'leave', newLeave.id, `مرخصی ${leave.type === 'daily' ? 'روزانه' : 'ساعتی'} برای ${employee?.name || 'نامشخص'} ثبت شد`);
+    addLog(userId, username, 'create', 'leave', newLeave.id, { ...newLeave, employee_name: employee ? `${employee.name} ${employee.last_name}` : 'نامشخص' });
     return newLeave;
   };
 
-  const updateLeave = (id: string, updates: Partial<Leave>, userId: string) => {
+  const updateLeave = (id: string, updates: Partial<Leave>, userId: string, username: string) => {
     const oldLeave = leaves.find(leave => leave.id === id);
     const newLeaves = leaves.map(leave => 
       leave.id === id ? { 
@@ -109,17 +111,18 @@ export const useLocalStorage = () => {
     saveLeaves(newLeaves);
     if (oldLeave) {
       const employee = employees.find(emp => emp.id === oldLeave.employee_id);
-      addLog(userId, 'update', 'leave', id, `مرخصی ${employee?.name || 'نامشخص'} ویرایش شد`);
+      const updatedLeave = { ...oldLeave, ...updates };
+      addLog(userId, username, 'update', 'leave', id, { ...updatedLeave, employee_name: employee ? `${employee.name} ${employee.last_name}` : 'نامشخص' }, { ...oldLeave, employee_name: employee ? `${employee.name} ${employee.last_name}` : 'نامشخص' });
     }
   };
 
-  const deleteLeave = (id: string, userId: string) => {
+  const deleteLeave = (id: string, userId: string, username: string) => {
     const leave = leaves.find(l => l.id === id);
     const newLeaves = leaves.filter(leave => leave.id !== id);
     saveLeaves(newLeaves);
     if (leave) {
       const employee = employees.find(emp => emp.id === leave.employee_id);
-      addLog(userId, 'delete', 'leave', id, `مرخصی ${employee?.name || 'نامشخص'} حذف شد`);
+      addLog(userId, username, 'delete', 'leave', id, { ...leave, employee_name: employee ? `${employee.name} ${employee.last_name}` : 'نامشخص' });
     }
   };
 

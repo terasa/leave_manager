@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { FileText, Download, Filter, User, Calendar } from 'lucide-react';
+import { FileText, Download, Filter, User, Calendar, Info } from 'lucide-react';
 import { useLogger } from '../hooks/useLogger';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { englishToPersianNumbers, formatPersianDateTime } from '../utils/dateHelpers';
+import { englishToPersianNumbers, formatPersianDateTime, formatPersianDate } from '../utils/dateHelpers';
+import { toJalaali } from 'jalaali-js';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -14,6 +15,8 @@ const SystemLogs: React.FC = () => {
   const { getUsers } = useAuth();
   const [selectedAction, setSelectedAction] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [showLogDetails, setShowLogDetails] = useState(false);
 
   const logs = getLogs(true);
   const users = getUsers();
@@ -37,20 +40,51 @@ const SystemLogs: React.FC = () => {
 
   const exportLogsToExcel = () => {
     const getUserName = (userId: string) => {
-      const user = users.find(u => u.id === userId);
-      return user ? user.username : userId;
+      return logs.find(l => l.user_id === userId)?.username || users.find(u => u.id === userId)?.username || userId;
     };
     
     const data = filteredLogs.map(log => ({
       'تاریخ و زمان': formatPersianDateTime(new Date(log.timestamp)),
-      'کاربر': getUserName(log.user_id),
+      'کاربر': log.username || getUserName(log.user_id),
       'عملیات': getActionLabel(log.action),
       'نوع موجودیت': getEntityTypeLabel(log.entity_type),
-      'جزئیات': log.details
+      'جزئیات کامل': log.details,
+      'مرورگر': log.system_info?.browser || 'نامشخص',
+      'سیستم عامل': log.system_info?.os || 'نامشخص',
+      'آدرس IP': log.ip_address || 'محلی',
+      'شناسه جلسه': log.session_id || 'ندارد'
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 50 }];
+    
+    // تنظیم فرمت راست به چپ و وسط چین
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[cellAddress]) continue;
+        
+        ws[cellAddress].s = {
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+            readingOrder: 2 // RTL
+          }
+        };
+      }
+    }
+    
+    ws['!cols'] = [
+      { wch: 25 }, // تاریخ و زمان
+      { wch: 15 }, // کاربر
+      { wch: 15 }, // عملیات
+      { wch: 15 }, // نوع موجودیت
+      { wch: 60 }, // جزئیات کامل
+      { wch: 15 }, // مرورگر
+      { wch: 15 }, // سیستم عامل
+      { wch: 15 }, // آدرس IP
+      { wch: 20 }  // شناسه جلسه
+    ];
     
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'لاگ سیستم');
@@ -161,6 +195,7 @@ const SystemLogs: React.FC = () => {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              max={new Date().toISOString().split('T')[0]}
             />
           </div>
           
@@ -272,16 +307,22 @@ const SystemLogs: React.FC = () => {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     جزئیات
                   </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    اطلاعات بیشتر
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
+                  <tr key={log.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
+                    setSelectedLog(log);
+                    setShowLogDetails(true);
+                  }}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatPersianDateTime(new Date(log.timestamp))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {(() => {
+                      {log.username || (() => {
                         const user = users.find(u => u.id === log.user_id);
                         return user ? user.username : log.user_id;
                       })()}
@@ -296,6 +337,18 @@ const SystemLogs: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
                       {log.details}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedLog(log);
+                          setShowLogDetails(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -323,6 +376,106 @@ const SystemLogs: React.FC = () => {
             <p className="mt-1 text-sm text-gray-500">
               فقط مدیران می‌توانند لاگ‌های سیستم را مشاهده کنند.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Log Details Modal */}
+      {showLogDetails && selectedLog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">جزئیات کامل لاگ</h3>
+              <button
+                onClick={() => setShowLogDetails(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* اطلاعات اصلی */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">اطلاعات عملیات</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">تاریخ و زمان:</span>
+                      <span className="font-medium">{formatPersianDateTime(new Date(selectedLog.timestamp))}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">کاربر:</span>
+                      <span className="font-medium">{selectedLog.username || selectedLog.user_id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">عملیات:</span>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getActionColor(selectedLog.action)}`}>
+                        {getActionLabel(selectedLog.action)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">نوع موجودیت:</span>
+                      <span className="font-medium">{getEntityTypeLabel(selectedLog.entity_type)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">شناسه موجودیت:</span>
+                      <span className="font-medium">{selectedLog.entity_id || 'ندارد'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">اطلاعات سیستم</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">مرورگر:</span>
+                      <span className="font-medium">{selectedLog.system_info?.browser || 'نامشخص'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">سیستم عامل:</span>
+                      <span className="font-medium">{selectedLog.system_info?.os || 'نامشخص'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">رزولوشن صفحه:</span>
+                      <span className="font-medium">{selectedLog.system_info?.screenResolution || 'نامشخص'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">زبان:</span>
+                      <span className="font-medium">{selectedLog.system_info?.language || 'نامشخص'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">آدرس IP:</span>
+                      <span className="font-medium">{selectedLog.ip_address || 'محلی'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">شناسه جلسه:</span>
+                      <span className="font-medium text-xs">{selectedLog.session_id || 'ندارد'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* جزئیات کامل */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">شرح کامل عملیات</h4>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-800 leading-relaxed">{selectedLog.details}</p>
+                </div>
+              </div>
+              
+              {/* User Agent */}
+              {selectedLog.system_info?.userAgent && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">اطلاعات فنی مرورگر</h4>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-xs text-gray-600 font-mono break-all">{selectedLog.system_info.userAgent}</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

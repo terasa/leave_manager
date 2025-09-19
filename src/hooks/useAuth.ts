@@ -1,53 +1,12 @@
 import { useState, useEffect } from 'react';
 import { User } from '../types';
+import { useLogger } from './useLogger';
 
 export const useAuth = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { addLog } = useLogger();
 
-  // Helper function to add logs
-  const addLog = (
-    userId: string,
-    action: 'create' | 'update' | 'delete' | 'login' | 'logout',
-    entityType: 'employee' | 'leave' | 'user' | 'settings',
-    entityId?: string,
-    details?: string
-  ) => {
-    const logEntry = {
-      id: Date.now().toString(),
-      user_id: userId,
-      action,
-      entity_type: entityType,
-      entity_id: entityId,
-      details: details || '',
-      timestamp: new Date().toISOString()
-    };
-
-    const existingLogs = localStorage.getItem('system_logs');
-    let logs = [];
-    
-    if (existingLogs) {
-      try {
-        const decryptedLogs = base64ToUtf8String(existingLogs);
-        logs = JSON.parse(decryptedLogs);
-      } catch {
-        logs = [];
-      }
-    }
-
-    logs.push(logEntry);
-    const encryptedLogs = utf8ToBase64String(JSON.stringify(logs));
-    localStorage.setItem('system_logs', encryptedLogs);
-  };
-
-  // Helper functions for encryption
-  const utf8ToBase64String = (str: string): string => {
-    return btoa(unescape(encodeURIComponent(str)));
-  };
-
-  const base64ToUtf8String = (str: string): string => {
-    return decodeURIComponent(escape(atob(str)));
-  };
 
   useEffect(() => {
     const checkAuth = () => {
@@ -86,7 +45,7 @@ export const useAuth = () => {
     if (user) {
       setCurrentUser(user);
       localStorage.setItem('currentUserId', user.id);
-      addLog(user.id, 'login', 'user', undefined, `کاربر ${username} وارد سیستم شد`);
+      addLog(user.id, user.username, 'login', 'user', user.id, { username });
       return true;
     }
     return false;
@@ -94,7 +53,7 @@ export const useAuth = () => {
 
   const logout = () => {
     if (currentUser) {
-      addLog(currentUser.id, 'logout', 'user', undefined, `کاربر ${currentUser.username} از سیستم خارج شد`);
+      addLog(currentUser.id, currentUser.username, 'logout', 'user', currentUser.id, { username: currentUser.username });
     }
     localStorage.removeItem('currentUserId');
     setCurrentUser(null);
@@ -108,7 +67,7 @@ export const useAuth = () => {
       );
       localStorage.setItem('users', JSON.stringify(updatedUsers));
       setCurrentUser({ ...currentUser, password: newPassword });
-      addLog(currentUser.id, 'update', 'user', currentUser.id, 'رمز عبور تغییر کرد');
+      addLog(currentUser.id, currentUser.username, 'update', 'user', currentUser.id, { passwordChanged: true }, { username: currentUser.username });
     }
   };
 
@@ -129,7 +88,7 @@ export const useAuth = () => {
 
     const updatedUsers = [...users, newUser];
     localStorage.setItem('users', JSON.stringify(updatedUsers));
-    addLog(currentUser.id, 'create', 'user', newUser.id, `کاربر جدید ${username} با نقش ${role} ایجاد شد`);
+    addLog(currentUser.id, currentUser.username, 'create', 'user', newUser.id, { username, role });
     return true;
   };
 
@@ -148,7 +107,7 @@ export const useAuth = () => {
     users[userIndex] = { ...oldUser, ...updates };
     localStorage.setItem('users', JSON.stringify(users));
     
-    addLog(currentUser.id, 'update', 'user', userId, `کاربر ${oldUser.username} ویرایش شد`);
+    addLog(currentUser.id, currentUser.username, 'update', 'user', userId, { ...oldUser, ...updates }, oldUser);
     return true;
   };
 
@@ -166,7 +125,7 @@ export const useAuth = () => {
     const updatedUsers = users.filter(u => u.id !== userId);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
     
-    addLog(currentUser.id, 'delete', 'user', userId, `کاربر ${user.username} حذف شد`);
+    addLog(currentUser.id, currentUser.username, 'delete', 'user', userId, user);
     return true;
   };
 

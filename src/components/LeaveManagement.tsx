@@ -97,7 +97,7 @@ const LeaveManagement: React.FC = () => {
         description: formData.description,
         duration
       };
-      updateLeave(editingLeave.id, updates, currentUser?.id || '');
+      updateLeave(editingLeave.id, updates, currentUser?.id || '', currentUser?.username || '');
     } else {
       const newLeave: Omit<Leave, 'id' | 'created_at' | 'is_modified' | 'created_by'> = {
         employee_id: formData.employee_id,
@@ -110,7 +110,7 @@ const LeaveManagement: React.FC = () => {
         description: formData.description,
         duration
       };
-      addLeave(newLeave, currentUser?.id || '');
+      addLeave(newLeave, currentUser?.id || '', currentUser?.username || '');
     }
 
     setShowModal(false);
@@ -139,7 +139,7 @@ const LeaveManagement: React.FC = () => {
     }
     const employee = employees.find(emp => emp.id === leave.employee_id);
     if (confirm(`آیا از حذف مرخصی ${employee?.name || 'نامشخص'} اطمینان دارید؟`)) {
-      deleteLeave(leave.id, currentUser?.id || '');
+      deleteLeave(leave.id, currentUser?.id || '', currentUser?.username || '');
     }
   };
 

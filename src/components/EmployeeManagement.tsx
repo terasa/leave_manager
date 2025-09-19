@@ -30,9 +30,9 @@ const EmployeeManagement: React.FC = () => {
     e.preventDefault();
     
     if (editingEmployee) {
-      updateEmployee(editingEmployee.id, formData, currentUser?.id || '');
+      updateEmployee(editingEmployee.id, formData, currentUser?.id || '', currentUser?.username || '');
     } else {
-      addEmployee(formData, currentUser?.id || '');
+      addEmployee(formData, currentUser?.id || '', currentUser?.username || '');
     }
     
     setFormData({ name: '', last_name: '', employee_id: '', position: '' });
@@ -57,7 +57,7 @@ const EmployeeManagement: React.FC = () => {
       return;
     }
     if (confirm(`آیا از حذف ${employee.name} ${employee.last_name} اطمینان دارید؟`)) {
-      deleteEmployee(employee.id, currentUser?.id || '');
+      deleteEmployee(employee.id, currentUser?.id || '', currentUser?.username || '');
     }
   };
 
