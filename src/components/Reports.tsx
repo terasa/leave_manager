@@ -113,6 +113,11 @@ const Reports: React.FC = () => {
     // Create workbook
     const wb = XLSX.utils.book_new();
     
+    // Set workbook direction to RTL
+    wb.Workbook = {
+      Views: [{ RTL: true }]
+    };
+    
     // Add employee summary sheet
     const ws1 = XLSX.utils.json_to_sheet(employeeSummaryData);
     
@@ -130,16 +135,15 @@ const Reports: React.FC = () => {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
           if (!ws1[cellAddress]) continue;
           
-          if (!ws1[cellAddress].s) ws1[cellAddress].s = {};
-          
           ws1[cellAddress].s = {
             alignment: {
               horizontal: 'center',
               vertical: 'center',
-              readingOrder: 2
+              readingOrder: 2,
+              wrapText: true
             },
-            fill: R === 0 ? { fgColor: { rgb: "DBEAFE" } } : undefined,
-            font: R === 0 ? { bold: true, color: { rgb: "1E40AF" } } : undefined,
+            fill: R === 0 ? { fgColor: { rgb: "DBEAFE" } } : { fgColor: { rgb: "FFFFFF" } },
+            font: R === 0 ? { bold: true, color: { rgb: "1E40AF" }, sz: 12 } : { sz: 11 },
             border: {
               top: { style: 'thin', color: { rgb: '000000' } },
               bottom: { style: 'thin', color: { rgb: '000000' } },
@@ -171,16 +175,15 @@ const Reports: React.FC = () => {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
           if (!ws2[cellAddress]) continue;
           
-          if (!ws2[cellAddress].s) ws2[cellAddress].s = {};
-          
           ws2[cellAddress].s = {
             alignment: {
               horizontal: 'center',
               vertical: 'center',
-              readingOrder: 2
+              readingOrder: 2,
+              wrapText: true
             },
-            fill: R === 0 ? { fgColor: { rgb: "DBEAFE" } } : undefined,
-            font: R === 0 ? { bold: true, color: { rgb: "1E40AF" } } : undefined,
+            fill: R === 0 ? { fgColor: { rgb: "DBEAFE" } } : { fgColor: { rgb: "FFFFFF" } },
+            font: R === 0 ? { bold: true, color: { rgb: "1E40AF" }, sz: 12 } : { sz: 11 },
             border: {
               top: { style: 'thin', color: { rgb: '000000' } },
               bottom: { style: 'thin', color: { rgb: '000000' } },
