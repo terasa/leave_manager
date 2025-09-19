@@ -7,6 +7,7 @@ import { englishToPersianNumbers, formatPersianDateTime, formatPersianDate } fro
 import { toJalaali } from 'jalaali-js';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import PersianCalendar from './PersianCalendar';
 
 const SystemLogs: React.FC = () => {
   const { currentUser } = useAuth();
@@ -18,6 +19,7 @@ const SystemLogs: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [showLogDetails, setShowLogDetails] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   
   const itemsPerPage = 10;
 
@@ -204,17 +206,23 @@ const SystemLogs: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               تاریخ
             </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                max={new Date().toISOString().split('T')[0]}
-              />
-              {selectedDate && (
-                <div className="text-xs text-gray-500 mt-1">
-                  {formatPersianDate(new Date(selectedDate))}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="w-full text-right border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              >
+                {selectedDate ? formatPersianDate(new Date(selectedDate)) : 'انتخاب تاریخ'}
+              </button>
+              {showCalendar && (
+                <div className="mt-2 relative z-10">
+                  <PersianCalendar
+                    selectedDate={selectedDate ? new Date(selectedDate) : undefined}
+                    onDateSelect={(date) => {
+                      setSelectedDate(date.toISOString().split('T')[0]);
+                      setShowCalendar(false);
+                    }}
+                  />
                 </div>
               )}
             </div>
