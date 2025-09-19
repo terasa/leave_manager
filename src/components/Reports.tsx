@@ -121,17 +121,20 @@ const Reports: React.FC = () => {
         englishToPersianNumbers(stats.totalLeaves.toString())
       ]);
       
-      // تنظیم alignment برای هر سلول با RTL قوی‌تر
+      // تنظیم RTL برای تمام سلول‌های این ردیف
       row.eachCell((cell, colNumber) => {
-        cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
-        // برای ستون‌های خاص RTL اضافی
-        if (colNumber >= 4 && colNumber <= 7) { // ستون‌های مرخصی روزانه، ساعتی، کل استفاده شده، مانده
+        cell.alignment = { 
+          horizontal: 'center', 
+          vertical: 'middle',
+          readingOrder: 2
+        };
+        // برای ستون‌های خاص که مشکل RTL دارند
+        if ([4, 5, 6, 7].includes(colNumber)) {
           cell.alignment = { 
-            horizontal: 'center', 
-            vertical: 'middle', 
+            horizontal: 'right', 
+            vertical: 'middle',
             readingOrder: 2,
-            textRotation: 0,
-            wrapText: false
+            indent: 1
           };
         }
       });
@@ -181,17 +184,20 @@ const Reports: React.FC = () => {
         leave.description || '-'
       ]);
       
-      // تنظیم alignment برای هر سلول با RTL قوی‌تر
+      // تنظیم RTL برای تمام سلول‌های این ردیف
       row.eachCell((cell, colNumber) => {
-        cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
-        // برای ستون‌های خاص RTL اضافی
-        if ([6, 7, 8, 9, 10].includes(colNumber)) { // ستون‌های شروع، پایان، ساعت شروع، ساعت پایان، مدت
+        cell.alignment = { 
+          horizontal: 'center', 
+          vertical: 'middle',
+          readingOrder: 2
+        };
+        // برای ستون‌های خاص که مشکل RTL دارند
+        if ([6, 7, 8, 9, 10].includes(colNumber)) {
           cell.alignment = { 
-            horizontal: 'center', 
-            vertical: 'middle', 
+            horizontal: 'right', 
+            vertical: 'middle',
             readingOrder: 2,
-            textRotation: 0,
-            wrapText: false
+            indent: 1
           };
         }
       });
