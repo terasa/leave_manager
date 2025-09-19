@@ -81,6 +81,11 @@ const Reports: React.FC = () => {
       remainingMinutes,
       totalLeaves: employeeLeaves.length
     };
+  };
+
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    
     // تنظیمات workbook
     workbook.creator = 'System';
     workbook.created = new Date();
@@ -169,7 +174,7 @@ const Reports: React.FC = () => {
     saveAs(blob, `report-${Date.now()}.xlsx`);
   };
 
-  const exportToExcel = async () => {
+  return (
     <div className="space-y-6" style={{ direction: 'rtl' }}>
       {/* Header */}
       <div className="flex justify-between items-center">
