@@ -131,7 +131,7 @@ const Reports: React.FC = () => {
     // Add employee summary sheet
     const ws1 = XLSX.utils.json_to_sheet(employeeSummaryData);
     
-    // Set column widths and styles for employee summary sheet
+    // Set column widths for employee summary sheet
     ws1['!cols'] = [
       { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 25 }, 
       { wch: 25 }, { wch: 25 }, { wch: 20 }, { wch: 15 }
@@ -152,8 +152,8 @@ const Reports: React.FC = () => {
               readingOrder: 2,
               wrapText: true
             },
-            fill: R === 0 ? { fgColor: { rgb: "E5E7EB" } } : { fgColor: { rgb: "FFFFFF" } },
-            font: R === 0 ? { bold: true, color: { rgb: "374151" }, sz: 12 } : { sz: 11 },
+            fill: R === 0 ? { fgColor: { rgb: "4F46E5" } } : { fgColor: { rgb: "FFFFFF" } }, // بنفش برای هدر
+            font: R === 0 ? { bold: true, color: { rgb: "FFFFFF" }, sz: 12 } : { sz: 11, color: { rgb: "374151" } }, // فونت سفید برای هدر
             border: {
               top: { style: 'thin', color: { rgb: '000000' } },
               bottom: { style: 'thin', color: { rgb: '000000' } },
@@ -170,68 +170,70 @@ const Reports: React.FC = () => {
     // Add detailed leaves sheet
     const ws2 = XLSX.utils.json_to_sheet(leavesData);
     
-    // Set column widths and styles for detailed leaves sheet
+    // Set column widths for detailed leaves sheet
     ws2['!cols'] = [
       { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, 
       { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, 
       { wch: 30 }, { wch: 15 }
     ];
     
-    // Apply RTL and styling manually to each cell
-    const range2 = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
-    const headers2 = Object.keys(leavesData[0] || {});
-    const leaveTypeColIndex = headers2.indexOf('نوع مرخصی');
-    const leaveCategoryColIndex = headers2.indexOf('دسته‌بندی');
-    
-    for (let R = range2.s.r; R <= range2.e.r; ++R) {
-      for (let C = range2.s.c; C <= range2.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws2[cellAddress]) continue;
-        
-        // Base style for all cells
-        ws2[cellAddress].s = {
-          alignment: {
-            horizontal: 'center',
-            vertical: 'center',
-            readingOrder: 2
-          },
-          border: {
-            top: { style: 'thin', color: { rgb: '000000' } },
-            bottom: { style: 'thin', color: { rgb: '000000' } },
-            left: { style: 'thin', color: { rgb: '000000' } },
-            right: { style: 'thin', color: { rgb: '000000' } }
-          }
-        };
-        
-        // Header row styling
-        if (R === 0) {
-          ws2[cellAddress].s.fill = { fgColor: { rgb: 'E5E7EB' } };
-          ws2[cellAddress].s.font = { bold: true, color: { rgb: '374151' }, sz: 12 };
-        } else {
-          // Data rows
-          ws2[cellAddress].s.fill = { fgColor: { rgb: 'FFFFFF' } };
-          ws2[cellAddress].s.font = { sz: 11, color: { rgb: '374151' } };
+    // Apply RTL and styling to detailed leaves sheet
+    if (ws2['!ref']) {
+      const range2 = XLSX.utils.decode_range(ws2['!ref']);
+      const headers2 = Object.keys(leavesData[0] || {});
+      const leaveTypeColIndex = headers2.indexOf('نوع مرخصی');
+      const leaveCategoryColIndex = headers2.indexOf('دسته‌بندی');
+      
+      for (let R = range2.s.r; R <= range2.e.r; ++R) {
+        for (let C = range2.s.c; C <= range2.e.c; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws2[cellAddress]) continue;
           
-          // Special coloring for specific columns
-          const dataRowIndex = R - 1;
-          if (dataRowIndex >= 0 && dataRowIndex < leavesData.length) {
-            // نوع مرخصی column
-            if (C === leaveTypeColIndex) {
-              const cellValue = ws2[cellAddress].v;
-              if (cellValue === 'روزانه') {
-                ws2[cellAddress].s.font = { sz: 11, color: { rgb: '059669' }, bold: true };
-              } else if (cellValue === 'ساعتی') {
-                ws2[cellAddress].s.font = { sz: 11, color: { rgb: '2563EB' }, bold: true };
-              }
+          // Base style for all cells
+          ws2[cellAddress].s = {
+            alignment: {
+              horizontal: 'center',
+              vertical: 'center',
+              readingOrder: 2
+            },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
             }
+          };
+          
+          // Header row styling
+          if (R === 0) {
+            ws2[cellAddress].s.fill = { fgColor: { rgb: 'DC2626' } }; // قرمز برای هدر
+            ws2[cellAddress].s.font = { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 }; // فونت سفید برای هدر
+          } else {
+            // Data rows
+            ws2[cellAddress].s.fill = { fgColor: { rgb: 'FFFFFF' } }; // پس زمینه سفید برای داده ها
+            ws2[cellAddress].s.font = { sz: 11, color: { rgb: '374151' } }; // فونت خاکستری تیره برای داده ها
             
-            // دسته‌بندی column
-            if (C === leaveCategoryColIndex) {
-              const cellValue = ws2[cellAddress].v;
-              if (cellValue === 'استحقاقی') {
-                ws2[cellAddress].s.font = { sz: 11, color: { rgb: '7C3AED' }, bold: true };
-              } else if (cellValue === 'استعلاجی') {
-                ws2[cellAddress].s.font = { sz: 11, color: { rgb: 'DC2626' }, bold: true };
+            // Special coloring for specific columns
+            const dataRowIndex = R - 1;
+            if (dataRowIndex >= 0 && dataRowIndex < leavesData.length) {
+              // نوع مرخصی column - تغییر فقط رنگ فونت
+              if (C === leaveTypeColIndex) {
+                const cellValue = ws2[cellAddress].v;
+                if (cellValue === 'روزانه') {
+                  ws2[cellAddress].s.font = { sz: 11, color: { rgb: '059669' }, bold: true }; // سبز
+                } else if (cellValue === 'ساعتی') {
+                  ws2[cellAddress].s.font = { sz: 11, color: { rgb: '2563EB' }, bold: true }; // آبی
+                }
+              }
+              
+              // دسته‌بندی column - تغییر فقط رنگ فونت
+              if (C === leaveCategoryColIndex) {
+                const cellValue = ws2[cellAddress].v;
+                if (cellValue === 'استحقاقی') {
+                  ws2[cellAddress].s.font = { sz: 11, color: { rgb: '7C3AED' }, bold: true }; // بنفش
+                } else if (cellValue === 'استعلاجی') {
+                  ws2[cellAddress].s.font = { sz: 11, color: { rgb: 'DC2626' }, bold: true }; // قرمز
+                }
               }
             }
           }
@@ -727,4 +729,5 @@ const EmployeeSummaryTable: React.FC<{
     </div>
   );
 };
+
 export default Reports;
