@@ -385,33 +385,6 @@ const LeaveManagement: React.FC = () => {
                   </label>
                 </div>
               </div>
-
-              {/* Date Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    تاریخ شروع
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowStartCalendar(!showStartCalendar)}
-                    className="w-full text-right border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    {formatPersianDate(formData.start_date)}
-                  </button>
-                  {showStartCalendar && (
-                    <div className="mt-2">
-                      <PersianCalendar
-                        selectedDate={formData.start_date}
-                        onDateSelect={(date) => {
-                          setFormData({ ...formData, start_date: date });
-                          setShowStartCalendar(false);
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-
                 {formData.type === 'daily' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -492,65 +465,6 @@ const LeaveManagement: React.FC = () => {
                       : formatDuration(calculateDuration())
                     }
                   </p>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    توضیحات (اختیاری)
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                    className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="توضیحات اضافی در مورد مرخصی..."
-                  />
-                </div>
-                
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    {editingLeave ? 'ویرایش مرخصی' : 'ثبت مرخصی'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowModal(false);
-                      resetForm();
-                    }}
-                    className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
-                  >
-                    انصراف
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Add missing imports
-  import { Edit2, Trash2 } from 'lucide-react';
-  import { LeaveCategory } from '../types';
-  import { useAuth } from '../hooks/useAuth';
-
-  export default LeaveManagement;
-                        <PersianCalendar
-                          selectedDate={formData.end_date}
-                          onDateSelect={(date) => {
-                            setFormData({ ...formData, end_date: date });
-                            setShowEndCalendar(false);
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
 
               {/* Time Selection for Hourly Leave */}
