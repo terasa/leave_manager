@@ -104,7 +104,7 @@ const Reports: React.FC = () => {
     headerRow1.eachCell((cell) => {
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.alignment = { horizontal: 'right', vertical: 'middle' };
     });
     
     // داده‌ها
@@ -123,7 +123,7 @@ const Reports: React.FC = () => {
       
       // تنظیم alignment برای هر سلول
       dataRow.eachCell((cell) => {
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
       });
     });
     
@@ -151,7 +151,7 @@ const Reports: React.FC = () => {
     headerRow2.eachCell((cell) => {
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC2626' } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.alignment = { horizontal: 'right', vertical: 'middle' };
     });
     
     // داده‌ها
@@ -173,7 +173,7 @@ const Reports: React.FC = () => {
       
       // تنظیم alignment برای هر سلول
       row.eachCell((cell) => {
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
       });
       
       // رنگ‌بندی
