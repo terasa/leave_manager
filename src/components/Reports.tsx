@@ -116,7 +116,10 @@ const Reports: React.FC = () => {
           ? `${englishToPersianNumbers(leave.duration.toString())} روز`
           : formatDuration(leave.duration),
         'توضیحات': leave.description || '-',
-        'وضعیت': leave.is_modified ? 'ویرایش شده' : 'اصلی'
+        'وضعیت': leave.is_modified ? 'ویرایش شده' : 'اصلی',
+        // اضافه کردن اطلاعات برای رنگ‌بندی
+        _leaveType: leave.type,
+        _leaveCategory: leave.leave_category
       };
     });
 
@@ -152,8 +155,8 @@ const Reports: React.FC = () => {
               readingOrder: 2,
               wrapText: true
             },
-            fill: R === 0 ? { fgColor: { rgb: "DBEAFE" } } : { fgColor: { rgb: "FFFFFF" } },
-            font: R === 0 ? { bold: true, color: { rgb: "1E40AF" }, sz: 12 } : { sz: 11 },
+            fill: R === 0 ? { fgColor: { rgb: "E5E7EB" } } : { fgColor: { rgb: "FFFFFF" } },
+            font: R === 0 ? { bold: true, color: { rgb: "374151" }, sz: 12 } : { sz: 11 },
             border: {
               top: { style: 'thin', color: { rgb: '000000' } },
               bottom: { style: 'thin', color: { rgb: '000000' } },
@@ -185,6 +188,34 @@ const Reports: React.FC = () => {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
           if (!ws2[cellAddress]) continue;
           
+          // تعیین رنگ فونت بر اساس نوع و دسته‌بندی مرخصی
+          let fontColor = '374151'; // رنگ پیش‌فرض (خاکستری تیره)
+          
+          if (R > 0) { // فقط برای ردیف‌های داده (نه هدر)
+            const dataIndex = R - 1;
+            if (dataIndex < leavesData.length) {
+              const rowData = leavesData[dataIndex];
+              
+              // رنگ‌بندی ستون نوع مرخصی (ستون 4)
+              if (C === 3) {
+                if (rowData._leaveType === 'daily') {
+                  fontColor = '059669'; // سبز برای روزانه
+                } else if (rowData._leaveType === 'hourly') {
+                  fontColor = '2563EB'; // آبی برای ساعتی
+                }
+              }
+              
+              // رنگ‌بندی ستون دسته‌بندی (ستون 5)
+              if (C === 4) {
+                if (rowData._leaveCategory === 'entitled') {
+                  fontColor = '7C3AED'; // بنفش برای استحقاقی
+                } else if (rowData._leaveCategory === 'medical') {
+                  fontColor = 'DC2626'; // قرمز برای استعلاجی
+                }
+              }
+            }
+          }
+          
           ws2[cellAddress].s = {
             alignment: {
               horizontal: 'center',
@@ -192,8 +223,8 @@ const Reports: React.FC = () => {
               readingOrder: 2,
               wrapText: true
             },
-            fill: R === 0 ? { fgColor: { rgb: "DBEAFE" } } : { fgColor: { rgb: "FFFFFF" } },
-            font: R === 0 ? { bold: true, color: { rgb: "1E40AF" }, sz: 12 } : { sz: 11 },
+            fill: R === 0 ? { fgColor: { rgb: "E5E7EB" } } : { fgColor: { rgb: "FFFFFF" } },
+            font: R === 0 ? { bold: true, color: { rgb: "374151" }, sz: 12 } : { color: { rgb: fontColor }, sz: 11 },
             border: {
               top: { style: 'thin', color: { rgb: '000000' } },
               bottom: { style: 'thin', color: { rgb: '000000' } },
