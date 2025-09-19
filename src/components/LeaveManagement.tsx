@@ -385,6 +385,35 @@ const LeaveManagement: React.FC = () => {
                   </label>
                 </div>
               </div>
+
+              {/* Date Selection for Daily Leave */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    تاریخ شروع
+                  </label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowStartCalendar(!showStartCalendar)}
+                      className="w-full text-right border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      {formatPersianDate(formData.start_date)}
+                    </button>
+                    {showStartCalendar && (
+                      <div className="absolute top-full left-0 mt-2 z-50 bg-white shadow-lg rounded-lg border border-gray-200">
+                        <PersianCalendar
+                          selectedDate={formData.start_date}
+                          onDateSelect={(date) => {
+                            setFormData({ ...formData, start_date: date });
+                            setShowStartCalendar(false);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {formData.type === 'daily' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -393,78 +422,25 @@ const LeaveManagement: React.FC = () => {
                     <div className="relative">
                       <button
                         type="button"
-                        onClick={() => setShowStartCalendar(!showStartCalendar)}
+                        onClick={() => setShowEndCalendar(!showEndCalendar)}
                         className="w-full text-right border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       >
-                        {formatPersianDate(formData.start_date)}
+                        {formatPersianDate(formData.end_date)}
                       </button>
-                      {showStartCalendar && (
+                      {showEndCalendar && (
                         <div className="absolute top-full left-0 mt-2 z-50 bg-white shadow-lg rounded-lg border border-gray-200">
                           <PersianCalendar
-                            selectedDate={formData.start_date}
+                            selectedDate={formData.end_date}
                             onDateSelect={(date) => {
-                              setFormData({ ...formData, start_date: date });
-                              setShowStartCalendar(false);
+                              setFormData({ ...formData, end_date: date });
+                              setShowEndCalendar(false);
                             }}
                           />
                         </div>
                       )}
                     </div>
                   </div>
-
-                  {formData.type === 'daily' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        تاریخ پایان
-                      </label>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => setShowEndCalendar(!showEndCalendar)}
-                          className="w-full text-right border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        >
-                          {formatPersianDate(formData.end_date)}
-                        </button>
-                        {showEndCalendar && (
-                          <div className="absolute top-full left-0 mt-2 z-50 bg-white shadow-lg rounded-lg border border-gray-200">
-                            <PersianCalendar
-                              selectedDate={formData.end_date}
-                              onDateSelect={(date) => {
-                                setFormData({ ...formData, end_date: date });
-                                setShowEndCalendar(false);
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Time Selection for Hourly Leave */}
-                {formData.type === 'hourly' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <TimePicker
-                      value={formData.start_time}
-                      onChange={(time) => setFormData({ ...formData, start_time: time })}
-                      label="ساعت شروع"
-                    />
-                    <TimePicker
-                      value={formData.end_time}
-                      onChange={(time) => setFormData({ ...formData, end_time: time })}
-                      label="ساعت پایان"
-                    />
-                  </div>
                 )}
-
-                {/* Duration Display */}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    مدت زمان مرخصی: {formData.type === 'daily' 
-                      ? `${englishToPersianNumbers(calculateDuration().toString())} روز`
-                      : formatDuration(calculateDuration())
-                    }
-                  </p>
               </div>
 
               {/* Time Selection for Hourly Leave */}
