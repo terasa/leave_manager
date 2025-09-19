@@ -125,7 +125,8 @@ const Reports: React.FC = () => {
     
     // Set workbook direction to RTL
     wb.Workbook = {
-      Views: [{ RTL: true }]
+      Views: [{ RTL: true }],
+      Styles: {}
     };
     
     // Add employee summary sheet
@@ -243,7 +244,7 @@ const Reports: React.FC = () => {
     
     XLSX.utils.book_append_sheet(wb, ws2, 'جزئیات مرخصی‌ها');
     
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     
     const now = new Date();
