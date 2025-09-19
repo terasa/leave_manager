@@ -77,10 +77,12 @@ const Reports: React.FC = () => {
 
     return {
       totalDailyDays,
-      totalHourlyMinutes,
-      remainingMinutes,
-      totalLeaves: employeeLeaves.length
-    };
+    // Set workbook properties
+    workbook.creator = 'Leave Management System';
+    workbook.lastModifiedBy = 'Leave Management System';
+    workbook.created = new Date();
+    workbook.modified = new Date();
+    workbook.lastPrinted = new Date();
   };
 
   const exportToExcel = async () => {
@@ -231,10 +233,15 @@ const Reports: React.FC = () => {
     const buffer = await workbook.xlsx.writeBuffer();
     const uint8Array = new Uint8Array(buffer);
     
+    const uint8Array = new Uint8Array(buffer);
+    
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
     
     const dataBlob = new Blob([uint8Array], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
+    });
+    
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
     });
     
