@@ -35,7 +35,7 @@ const Reports: React.FC = () => {
   const currentDate = new Date();
   const currentJalaali = toJalaali(currentDate);
   const currentYear = currentJalaali.jy;
-  const yearRange = Array.from({ length: 101 }, (_, i) => currentYear - 20 + i);
+  const yearRange = Array.from({ length: 101 }, (_, i) => currentYear - 15 + i);
 
   const filteredLeaves = leaves.filter(leave => {
     const leaveDate = new Date(leave.start_date);
