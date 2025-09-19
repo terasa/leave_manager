@@ -169,7 +169,7 @@ const Reports: React.FC = () => {
     saveAs(blob, `report-${Date.now()}.xlsx`);
   };
 
-  return (
+  const exportToExcel = async () => {
     <div className="space-y-6" style={{ direction: 'rtl' }}>
       {/* Header */}
       <div className="flex justify-between items-center">
