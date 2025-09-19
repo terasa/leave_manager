@@ -3,7 +3,7 @@ import { Download, Filter, Calendar, User, BarChart } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toJalaali } from 'jalaali-js';
-import { englishToPersianNumbers, formatPersianDate, formatDuration, formatLeaveBalance } from '../utils/dateHelpers';
+import { englishToPersianNumbers, formatPersianDate, formatDuration, formatLeaveBalance, formatPersianDateTime } from '../utils/dateHelpers';
 import { saveAs } from 'file-saver';
 
 const Reports: React.FC = () => {
