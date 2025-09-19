@@ -170,72 +170,71 @@ const Reports: React.FC = () => {
     // Add detailed leaves sheet
     const ws2 = XLSX.utils.json_to_sheet(leavesData);
     
-    // Set column widths for detailed leaves sheet
+    // Set column widths and styles for detailed leaves sheet
     ws2['!cols'] = [
       { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, 
       { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, 
       { wch: 30 }, { wch: 15 }
     ];
     
-    // Apply styles to detailed leaves sheet
-    if (ws2['!ref']) {
-      const ws2Range = XLSX.utils.decode_range(ws2['!ref']);
-      for (let R = ws2Range.s.r; R <= ws2Range.e.r; ++R) {
-        for (let C = ws2Range.s.c; C <= ws2Range.e.c; ++C) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          if (!ws2[cellAddress]) continue;
+    // Apply RTL and styling manually to each cell
+    const range2 = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
+    const headers2 = Object.keys(leavesData[0] || {});
+    const leaveTypeColIndex = headers2.indexOf('نوع مرخصی');
+    const leaveCategoryColIndex = headers2.indexOf('دسته‌بندی');
+    
+    for (let R = range2.s.r; R <= range2.e.r; ++R) {
+      for (let C = range2.s.c; C <= range2.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws2[cellAddress]) continue;
+        
+        // Base style for all cells
+        ws2[cellAddress].s = {
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+            readingOrder: 2
+          },
+          border: {
+            top: { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } }
+          }
+        };
+        
+        // Header row styling
+        if (R === 0) {
+          ws2[cellAddress].s.fill = { fgColor: { rgb: 'E5E7EB' } };
+          ws2[cellAddress].s.font = { bold: true, color: { rgb: '374151' }, sz: 12 };
+        } else {
+          // Data rows
+          ws2[cellAddress].s.fill = { fgColor: { rgb: 'FFFFFF' } };
+          ws2[cellAddress].s.font = { sz: 11, color: { rgb: '374151' } };
           
-          // تنظیمات پایه
-          let cellStyle: any = {
-            alignment: {
-              horizontal: 'center',
-              vertical: 'center',
-              readingOrder: 2
-            },
-            border: {
-              top: { style: 'thin', color: { rgb: '000000' } },
-              bottom: { style: 'thin', color: { rgb: '000000' } },
-              left: { style: 'thin', color: { rgb: '000000' } },
-              right: { style: 'thin', color: { rgb: '000000' } }
-            }
-          };
-
-          // ردیف اول (هدر)
-          if (R === 0) {
-            cellStyle.fill = { fgColor: { rgb: 'E5E7EB' } };
-            cellStyle.font = { bold: true, color: { rgb: '374151' }, sz: 12 };
-          } else {
-            // ردیف‌های داده
-            cellStyle.fill = { fgColor: { rgb: 'FFFFFF' } };
-            cellStyle.font = { sz: 11, color: { rgb: '374151' } };
-            
-            // رنگ‌بندی خاص برای ستون‌های مشخص
-            const dataIndex = R - 1;
-            if (dataIndex >= 0 && dataIndex < leaves.length) {
-              const leave = leaves[dataIndex];
-              const headers = Object.keys(leavesData[0] || {});
-              
-              // ستون نوع مرخصی
-              if (C === headers.indexOf('نوع مرخصی')) {
-                if (leave.type === 'daily') {
-                  cellStyle.font.color = { rgb: '059669' }; // سبز
-                } else {
-                  cellStyle.font.color = { rgb: '2563EB' }; // آبی
-                }
+          // Special coloring for specific columns
+          const dataRowIndex = R - 1;
+          if (dataRowIndex >= 0 && dataRowIndex < leavesData.length) {
+            // نوع مرخصی column
+            if (C === leaveTypeColIndex) {
+              const cellValue = ws2[cellAddress].v;
+              if (cellValue === 'روزانه') {
+                ws2[cellAddress].s.font = { sz: 11, color: { rgb: '059669' }, bold: true };
+              } else if (cellValue === 'ساعتی') {
+                ws2[cellAddress].s.font = { sz: 11, color: { rgb: '2563EB' }, bold: true };
               }
-              
-              // ستون دسته‌بندی
-              if (C === headers.indexOf('دسته‌بندی')) {
-                if (leave.leave_category === 'entitled') {
-                  cellStyle.font.color = { rgb: '7C3AED' }; // بنفش
-                } else {
-                  cellStyle.font.color = { rgb: 'DC2626' }; // قرمز
-                }
+            }
+            
+            // دسته‌بندی column
+            if (C === leaveCategoryColIndex) {
+              const cellValue = ws2[cellAddress].v;
+              if (cellValue === 'استحقاقی') {
+                ws2[cellAddress].s.font = { sz: 11, color: { rgb: '7C3AED' }, bold: true };
+              } else if (cellValue === 'استعلاجی') {
+                ws2[cellAddress].s.font = { sz: 11, color: { rgb: 'DC2626' }, bold: true };
               }
             }
           }
-
-          ws2[cellAddress].s = cellStyle;
         }
       }
     }
