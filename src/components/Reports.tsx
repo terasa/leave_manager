@@ -96,6 +96,13 @@ const Reports: React.FC = () => {
     // تنظیم راست به چپ
     ws1.views = [{ rightToLeft: true }];
     
+    // مرتب‌سازی کارمندان بر اساس کد پرسنلی
+    const sortedEmployees = [...employees].sort((a, b) => {
+      const aId = parseInt(a.employee_id) || 0;
+      const bId = parseInt(b.employee_id) || 0;
+      return aId - bId;
+    });
+    
     // هدر
     const headers1 = ['نام کارمند', 'کد پرسنلی', 'سمت', 'مرخصی روزانه', 'مرخصی ساعتی', 'کل مرخصی استفاده شده', 'مانده مرخصی', 'تعداد کل'];
     const headerRow1 = ws1.addRow(headers1);
@@ -112,7 +119,7 @@ const Reports: React.FC = () => {
     });
     
     // داده‌ها
-    employees.forEach(employee => {
+    sortedEmployees.forEach(employee => {
       const stats = getEmployeeStats(employee.id);
       const dataRow = ws1.addRow([
         `${employee.name} ${employee.last_name}`,
@@ -152,7 +159,7 @@ const Reports: React.FC = () => {
     ws2.views = [{ rightToLeft: true }];
     
     // هدر
-    const headers2 = ['نام کارمند', 'کد پرسنلی', 'سمت', 'نوع مرخصی', 'دسته', 'تاریخ شروع', 'تاریخ پایان', 'ساعت شروع', 'ساعت پایان', 'مدت', 'توضیحات'];
+    const headers2 = ['نام کارمند', 'کد پرسنلی', 'سمت', 'نوع مرخصی', 'دسته', 'تاریخ شروع', 'تاریخ پایان', 'ساعت شروع', 'ساعت پایان', 'مدت', 'توضیحات', 'زمان ثبت', 'آخرین ویرایش'];
     const headerRow2 = ws2.addRow(headers2);
     
     // استایل هدر
@@ -180,7 +187,9 @@ const Reports: React.FC = () => {
         leave.start_time ? englishToPersianNumbers(leave.start_time) : '-',
         leave.end_time ? englishToPersianNumbers(leave.end_time) : '-',
         leave.type === 'daily' ? `${englishToPersianNumbers(leave.duration.toString())} روز` : formatDuration(leave.duration),
-        leave.description || '-'
+        leave.description || '-',
+        formatPersianDateTime(new Date(leave.created_at)),
+        leave.updated_at ? formatPersianDateTime(new Date(leave.updated_at)) : '-'
       ]);
       
       // تنظیم alignment برای هر سلول
@@ -218,7 +227,9 @@ const Reports: React.FC = () => {
       { width: 15 }, // ساعت شروع
       { width: 15 }, // ساعت پایان
       { width: 20 }, // مدت
-      { width: 30 }  // توضیحات
+      { width: 30 }, // توضیحات
+      { width: 25 }, // زمان ثبت
+      { width: 25 }  // آخرین ویرایش
     ];
     
     // دانلود
