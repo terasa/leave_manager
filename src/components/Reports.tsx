@@ -109,6 +109,7 @@ const Reports: React.FC = () => {
     // Employee Summary Sheet
     const ws1 = workbook.addWorksheet('خلاصه کارمندان');
     ws1.views = [{ rightToLeft: true, showGridLines: true }];
+    ws1.properties = { rightToLeft: true };
     
     // Add header row
     const headerRow1 = ws1.addRow(['نام کارمند', 'کد پرسنلی', 'سمت', 'مرخصی روزانه استفاده شده', 'مرخصی ساعتی استفاده شده', 'کل مرخصی استفاده شده', 'مانده مرخصی', 'کل تعداد مرخصی‌ها']);
@@ -121,14 +122,22 @@ const Reports: React.FC = () => {
         fgColor: { argb: 'FF4F46E5' }
       };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 'rtl' };
     });
     
     // Add data rows
     employeeSummaryData.forEach((rowData, index) => {
       const dataRow = ws1.addRow(rowData);
       dataRow.eachCell((cell) => {
-        cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 'rtl' };
+      });
+    });
+    
+    // Apply RTL to all cells in worksheet
+    ws1.eachRow((row) => {
+      row.eachCell((cell) => {
+        if (!cell.alignment) cell.alignment = {};
+        cell.alignment = { ...cell.alignment, readingOrder: 'rtl' };
       });
     });
     
@@ -162,6 +171,7 @@ const Reports: React.FC = () => {
     // Details Sheet
     const ws2 = workbook.addWorksheet('جزئیات مرخصی‌ها');
     ws2.views = [{ rightToLeft: true, showGridLines: true }];
+    ws2.properties = { rightToLeft: true };
     
     // Add header row
     const headerRow2 = ws2.addRow(['نام کارمند', 'کد پرسنلی', 'سمت', 'نوع مرخصی', 'دسته‌بندی', 'تاریخ شروع', 'تاریخ پایان', 'ساعت شروع', 'ساعت پایان', 'مدت زمان', 'توضیحات', 'وضعیت']);
@@ -174,14 +184,14 @@ const Reports: React.FC = () => {
         fgColor: { argb: 'FFDC2626' }
       };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 'rtl' };
     });
     
     // Add data rows with color coding
     leavesData.forEach((rowData, index) => {
       const dataRow = ws2.addRow(rowData);
       dataRow.eachCell((cell) => {
-        cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 'rtl' };
       });
       
       // Color coding for نوع مرخصی (column 4)
@@ -199,6 +209,14 @@ const Reports: React.FC = () => {
       } else if (rowData[4] === 'استعلاجی') {
         categoryCell.font = { color: { argb: 'FFDC2626' }, bold: true };
       }
+    });
+    
+    // Apply RTL to all cells in worksheet
+    ws2.eachRow((row) => {
+      row.eachCell((cell) => {
+        if (!cell.alignment) cell.alignment = {};
+        cell.alignment = { ...cell.alignment, readingOrder: 'rtl' };
+      });
     });
     
     // Set column widths
