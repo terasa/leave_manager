@@ -110,7 +110,7 @@ const Reports: React.FC = () => {
     // داده‌ها
     employees.forEach(employee => {
       const stats = getEmployeeStats(employee.id);
-      const dataRow = ws1.addRow([
+      const row = ws1.addRow([
         `${employee.name} ${employee.last_name}`,
         englishToPersianNumbers(employee.employee_id),
         employee.position,
@@ -121,9 +121,19 @@ const Reports: React.FC = () => {
         englishToPersianNumbers(stats.totalLeaves.toString())
       ]);
       
-      // تنظیم alignment برای هر سلول
-      dataRow.eachCell((cell) => {
+      // تنظیم alignment برای هر سلول با RTL قوی‌تر
+      row.eachCell((cell, colNumber) => {
         cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+        // برای ستون‌های خاص RTL اضافی
+        if (colNumber >= 4 && colNumber <= 7) { // ستون‌های مرخصی روزانه، ساعتی، کل استفاده شده، مانده
+          cell.alignment = { 
+            horizontal: 'center', 
+            vertical: 'middle', 
+            readingOrder: 2,
+            textRotation: 0,
+            wrapText: false
+          };
+        }
       });
     });
     
@@ -171,9 +181,19 @@ const Reports: React.FC = () => {
         leave.description || '-'
       ]);
       
-      // تنظیم alignment برای هر سلول
-      row.eachCell((cell) => {
+      // تنظیم alignment برای هر سلول با RTL قوی‌تر
+      row.eachCell((cell, colNumber) => {
         cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+        // برای ستون‌های خاص RTL اضافی
+        if ([6, 7, 8, 9, 10].includes(colNumber)) { // ستون‌های شروع، پایان، ساعت شروع، ساعت پایان، مدت
+          cell.alignment = { 
+            horizontal: 'center', 
+            vertical: 'middle', 
+            readingOrder: 2,
+            textRotation: 0,
+            wrapText: false
+          };
+        }
       });
       
       // رنگ‌بندی
