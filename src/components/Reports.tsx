@@ -91,61 +91,90 @@ const Reports: React.FC = () => {
     workbook.created = new Date();
 
     // Employee Summary Sheet
-    const ws1 = workbook.addWorksheet('Summary');
+    const ws1 = workbook.addWorksheet('خلاصه کارمندان');
     
     // تنظیم راست به چپ
     ws1.views = [{ rightToLeft: true }];
     
     // هدر
     const headers1 = ['نام کارمند', 'کد پرسنلی', 'سمت', 'مرخصی روزانه', 'مرخصی ساعتی', 'کل استفاده شده', 'مانده', 'تعداد کل'];
-    ws1.addRow(headers1);
-    
-    // داده‌ها
-    employees.forEach(employee => {
-      const stats = getEmployeeStats(employee.id);
-      ws1.addRow([
-        `${employee.name} ${employee.last_name}`,
-        employee.employee_id,
-        employee.position,
-        `${stats.totalDailyDays} روز`,
-        formatDuration(stats.totalHourlyMinutes / 60),
-        formatLeaveBalance((stats.totalDailyDays * 8 * 60) + stats.totalHourlyMinutes),
-        formatLeaveBalance(stats.remainingMinutes),
-        stats.totalLeaves.toString()
-      ]);
-    });
+    const headerRow1 = ws1.addRow(headers1);
     
     // استایل هدر
-    ws1.getRow(1).eachCell((cell) => {
+    headerRow1.eachCell((cell) => {
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
     });
     
+    // داده‌ها
+    employees.forEach(employee => {
+      const stats = getEmployeeStats(employee.id);
+      const dataRow = ws1.addRow([
+        `${employee.name} ${employee.last_name}`,
+        englishToPersianNumbers(employee.employee_id),
+        employee.position,
+        `${englishToPersianNumbers(stats.totalDailyDays.toString())} روز`,
+        formatDuration(stats.totalHourlyMinutes / 60),
+        formatLeaveBalance((stats.totalDailyDays * 8 * 60) + stats.totalHourlyMinutes),
+        formatLeaveBalance(stats.remainingMinutes),
+        englishToPersianNumbers(stats.totalLeaves.toString())
+      ]);
+      
+      // تنظیم alignment برای هر سلول
+      dataRow.eachCell((cell) => {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    });
+    
+    // تنظیم عرض ستون‌ها
+    ws1.columns = [
+      { width: 25 }, // نام کارمند
+      { width: 15 }, // کد پرسنلی
+      { width: 20 }, // سمت
+      { width: 20 }, // مرخصی روزانه
+      { width: 20 }, // مرخصی ساعتی
+      { width: 25 }, // کل استفاده شده
+      { width: 25 }, // مانده
+      { width: 15 }  // تعداد کل
+    ];
+    
     // Details Sheet
-    const ws2 = workbook.addWorksheet('Details');
+    const ws2 = workbook.addWorksheet('جزئیات مرخصی‌ها');
     ws2.views = [{ rightToLeft: true }];
     
     // هدر
     const headers2 = ['نام', 'کد', 'سمت', 'نوع', 'دسته', 'شروع', 'پایان', 'ساعت شروع', 'ساعت پایان', 'مدت', 'توضیحات'];
-    ws2.addRow(headers2);
+    const headerRow2 = ws2.addRow(headers2);
+    
+    // استایل هدر
+    headerRow2.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC2626' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
     
     // داده‌ها
     leaves.forEach(leave => {
       const employee = employees.find(emp => emp.id === leave.employee_id);
       const row = ws2.addRow([
         employee ? `${employee.name} ${employee.last_name}` : 'نامشخص',
-        employee ? employee.employee_id : '-',
+        employee ? englishToPersianNumbers(employee.employee_id) : '-',
         employee?.position || '-',
         leave.type === 'daily' ? 'روزانه' : 'ساعتی',
         leave.leave_category === 'medical' ? 'استعلاجی' : 'استحقاقی',
         formatPersianDate(new Date(leave.start_date)),
         formatPersianDate(new Date(leave.end_date)),
-        leave.start_time || '-',
-        leave.end_time || '-',
-        leave.type === 'daily' ? `${leave.duration} روز` : formatDuration(leave.duration),
+        leave.start_time ? englishToPersianNumbers(leave.start_time) : '-',
+        leave.end_time ? englishToPersianNumbers(leave.end_time) : '-',
+        leave.type === 'daily' ? `${englishToPersianNumbers(leave.duration.toString())} روز` : formatDuration(leave.duration),
         leave.description || '-'
       ]);
+      
+      // تنظیم alignment برای هر سلول
+      row.eachCell((cell) => {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
       
       // رنگ‌بندی
       if (leave.type === 'daily') {
@@ -161,17 +190,27 @@ const Reports: React.FC = () => {
       }
     });
     
-    // استایل هدر
-    ws2.getRow(1).eachCell((cell) => {
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC2626' } };
-      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    });
+    // تنظیم عرض ستون‌ها
+    ws2.columns = [
+      { width: 20 }, // نام
+      { width: 15 }, // کد
+      { width: 20 }, // سمت
+      { width: 15 }, // نوع
+      { width: 15 }, // دسته
+      { width: 20 }, // شروع
+      { width: 20 }, // پایان
+      { width: 15 }, // ساعت شروع
+      { width: 15 }, // ساعت پایان
+      { width: 20 }, // مدت
+      { width: 30 }  // توضیحات
+    ];
     
     // دانلود
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer]);
-    saveAs(blob, `report-${Date.now()}.xlsx`);
+    saveAs(blob, `گزارش-مرخصی-${timestamp}.xlsx`);
   };
 
   return (
