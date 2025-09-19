@@ -9,7 +9,11 @@ import { saveAs } from 'file-saver';
 const Reports: React.FC = () => {
   const { employees, leaves, settings } = useLocalStorage();
   const [selectedEmployee, setSelectedEmployee] = useState('');
-  const [selectedYear, setSelectedYear] = useState(1403);
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const currentDate = new Date();
+    const currentJalaali = toJalaali(currentDate);
+    return currentJalaali.jy;
+  });
   const [selectedMonth, setSelectedMonth] = useState('');
 
   const months = [
@@ -26,6 +30,12 @@ const Reports: React.FC = () => {
     { value: 11, label: 'بهمن' },
     { value: 12, label: 'اسفند' }
   ];
+
+  // Generate year range (50 years before to 50 years after current year)
+  const currentDate = new Date();
+  const currentJalaali = toJalaali(currentDate);
+  const currentYear = currentJalaali.jy;
+  const yearRange = Array.from({ length: 101 }, (_, i) => currentYear - 50 + i);
 
   const filteredLeaves = leaves.filter(leave => {
     const leaveDate = new Date(leave.start_date);
@@ -258,7 +268,7 @@ const Reports: React.FC = () => {
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
               className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              {[1402, 1403, 1404, 1405].map(year => (
+              {yearRange.map(year => (
                 <option key={year} value={year}>
                   {englishToPersianNumbers(year.toString())}
                 </option>
@@ -289,7 +299,7 @@ const Reports: React.FC = () => {
               onClick={() => {
                 setSelectedEmployee('');
                 setSelectedMonth('');
-                setSelectedYear(new Date().getFullYear());
+                setSelectedYear(currentYear);
               }}
               className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
             >
