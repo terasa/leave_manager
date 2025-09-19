@@ -86,6 +86,11 @@ const Reports: React.FC = () => {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     
+    // Set workbook properties for RTL
+    workbook.properties = {
+      date1904: false
+    };
+    
     // Create employee summary data
     const employeeSummaryData = employees.map(employee => {
       const stats = getEmployeeStats(employee.id);
@@ -103,24 +108,28 @@ const Reports: React.FC = () => {
 
     // Employee Summary Sheet
     const ws1 = workbook.addWorksheet('خلاصه کارمندان');
-    ws1.views = [{ rightToLeft: true }];
+    ws1.views = [{ rightToLeft: true, showGridLines: true }];
     
     // Add header row
     const headerRow1 = ws1.addRow(['نام کارمند', 'کد پرسنلی', 'سمت', 'مرخصی روزانه استفاده شده', 'مرخصی ساعتی استفاده شده', 'کل مرخصی استفاده شده', 'مانده مرخصی', 'کل تعداد مرخصی‌ها']);
     
-    // Style header row
-    headerRow1.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF4F46E5' }
-    };
-    headerRow1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow1.alignment = { horizontal: 'center', vertical: 'middle' };
+    // Style header row cells individually
+    headerRow1.eachCell((cell, colNumber) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4F46E5' }
+      };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+    });
     
     // Add data rows
-    employeeSummaryData.forEach(rowData => {
+    employeeSummaryData.forEach((rowData, index) => {
       const dataRow = ws1.addRow(rowData);
-      dataRow.alignment = { horizontal: 'center', vertical: 'middle' };
+      dataRow.eachCell((cell) => {
+        cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+      });
     });
     
     // Set column widths
@@ -152,24 +161,28 @@ const Reports: React.FC = () => {
 
     // Details Sheet
     const ws2 = workbook.addWorksheet('جزئیات مرخصی‌ها');
-    ws2.views = [{ rightToLeft: true }];
+    ws2.views = [{ rightToLeft: true, showGridLines: true }];
     
     // Add header row
     const headerRow2 = ws2.addRow(['نام کارمند', 'کد پرسنلی', 'سمت', 'نوع مرخصی', 'دسته‌بندی', 'تاریخ شروع', 'تاریخ پایان', 'ساعت شروع', 'ساعت پایان', 'مدت زمان', 'توضیحات', 'وضعیت']);
     
-    // Style header row
-    headerRow2.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFDC2626' }
-    };
-    headerRow2.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow2.alignment = { horizontal: 'center', vertical: 'middle' };
+    // Style header row cells individually
+    headerRow2.eachCell((cell, colNumber) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFDC2626' }
+      };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+    });
     
     // Add data rows with color coding
     leavesData.forEach((rowData, index) => {
       const dataRow = ws2.addRow(rowData);
-      dataRow.alignment = { horizontal: 'center', vertical: 'middle' };
+      dataRow.eachCell((cell) => {
+        cell.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 2 };
+      });
       
       // Color coding for نوع مرخصی (column 4)
       const leaveTypeCell = dataRow.getCell(4);
