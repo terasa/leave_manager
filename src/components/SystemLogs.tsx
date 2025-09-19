@@ -15,8 +15,11 @@ const SystemLogs: React.FC = () => {
   const { getUsers } = useAuth();
   const [selectedAction, setSelectedAction] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [showLogDetails, setShowLogDetails] = useState(false);
+  
+  const itemsPerPage = 10;
 
   const logs = getLogs(true);
   const users = getUsers();
@@ -30,13 +33,23 @@ const SystemLogs: React.FC = () => {
     }
 
     if (selectedDate) {
-      const logDate = new Date(log.timestamp).toDateString();
-      const filterDate = new Date(selectedDate).toDateString();
-      matchesDate = logDate === filterDate;
+      const logDate = new Date(log.timestamp);
+      const filterDate = new Date(selectedDate);
+      const logJalaali = toJalaali(logDate);
+      const filterJalaali = toJalaali(filterDate);
+      matchesDate = logJalaali.jy === filterJalaali.jy && 
+                   logJalaali.jm === filterJalaali.jm && 
+                   logJalaali.jd === filterJalaali.jd;
     }
 
     return matchesAction && matchesDate;
   });
+  
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentLogs = filteredLogs.slice(startIndex, endIndex);
 
   const exportLogsToExcel = () => {
     const getUserName = (userId: string) => {
@@ -48,16 +61,27 @@ const SystemLogs: React.FC = () => {
       'کاربر': log.username || getUserName(log.user_id),
       'عملیات': getActionLabel(log.action),
       'نوع موجودیت': getEntityTypeLabel(log.entity_type),
-      'جزئیات کامل': log.details,
+      'شرح عملیات': log.details,
       'مرورگر': log.system_info?.browser || 'نامشخص',
       'سیستم عامل': log.system_info?.os || 'نامشخص',
-      'آدرس IP': log.ip_address || 'محلی',
-      'شناسه جلسه': log.session_id || 'ندارد'
+      'آدرس IP': log.ip_address || 'محلی'
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
     
-    // تنظیم فرمت راست به چپ و وسط چین
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 25 }, // تاریخ و زمان
+      { wch: 15 }, // کاربر
+      { wch: 15 }, // عملیات
+      { wch: 15 }, // نوع موجودیت
+      { wch: 60 }, // شرح عملیات
+      { wch: 15 }, // مرورگر
+      { wch: 15 }, // سیستم عامل
+      { wch: 15 }  // آدرس IP
+    ];
+    
+    // Apply RTL and center alignment to all cells
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -68,23 +92,13 @@ const SystemLogs: React.FC = () => {
           alignment: {
             horizontal: 'center',
             vertical: 'center',
-            readingOrder: 2 // RTL
-          }
+            readingOrder: 2
+          },
+          fill: R === 0 ? { fgColor: { rgb: "E5E7EB" } } : undefined,
+          font: R === 0 ? { bold: true } : undefined
         };
       }
     }
-    
-    ws['!cols'] = [
-      { wch: 25 }, // تاریخ و زمان
-      { wch: 15 }, // کاربر
-      { wch: 15 }, // عملیات
-      { wch: 15 }, // نوع موجودیت
-      { wch: 60 }, // جزئیات کامل
-      { wch: 15 }, // مرورگر
-      { wch: 15 }, // سیستم عامل
-      { wch: 15 }, // آدرس IP
-      { wch: 20 }  // شناسه جلسه
-    ];
     
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'لاگ سیستم');
@@ -190,13 +204,20 @@ const SystemLogs: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               تاریخ
             </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              max={new Date().toISOString().split('T')[0]}
-            />
+            <div className="relative">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                max={new Date().toISOString().split('T')[0]}
+              />
+              {selectedDate && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {formatPersianDate(new Date(selectedDate))}
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="flex items-end">
@@ -204,6 +225,7 @@ const SystemLogs: React.FC = () => {
               onClick={() => {
                 setSelectedAction('');
                 setSelectedDate('');
+                setCurrentPage(1);
               }}
               className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
             >
@@ -313,7 +335,7 @@ const SystemLogs: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredLogs.map((log) => (
+                {currentLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
                     setSelectedLog(log);
                     setShowLogDetails(true);
@@ -355,6 +377,59 @@ const SystemLogs: React.FC = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                نمایش {englishToPersianNumbers((startIndex + 1).toString())} تا {englishToPersianNumbers(Math.min(endIndex, filteredLogs.length).toString())} از {englishToPersianNumbers(filteredLogs.length.toString())} لاگ
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  قبلی
+                </button>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let page;
+                  if (totalPages <= 5) {
+                    page = i + 1;
+                  } else if (currentPage <= 3) {
+                    page = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    page = totalPages - 4 + i;
+                  } else {
+                    page = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 text-sm border rounded-md ${
+                        currentPage === page
+                          ? 'bg-blue-500 text-white border-blue-500'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {englishToPersianNumbers(page.toString())}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  بعدی
+                </button>
+              </div>
+            </div>
+          )}
         ) : (
           <div className="px-6 py-12 text-center">
             <FileText className="mx-auto h-12 w-12 text-gray-400" />
@@ -422,7 +497,7 @@ const SystemLogs: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">شناسه موجودیت:</span>
-                      <span className="font-medium">{selectedLog.entity_id || 'ندارد'}</span>
+                      <span className="font-medium">{selectedLog.entity_id ? 'دارد' : 'ندارد'}</span>
                     </div>
                   </div>
                 </div>
@@ -449,10 +524,6 @@ const SystemLogs: React.FC = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-600">آدرس IP:</span>
                       <span className="font-medium">{selectedLog.ip_address || 'محلی'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">شناسه جلسه:</span>
-                      <span className="font-medium text-xs">{selectedLog.session_id || 'ندارد'}</span>
                     </div>
                   </div>
                 </div>

@@ -115,39 +115,63 @@ const Reports: React.FC = () => {
     
     // Add employee summary sheet
     const ws1 = XLSX.utils.json_to_sheet(employeeSummaryData);
-    ws1['!dir'] = 'rtl';
-    if (!ws1['!cols']) ws1['!cols'] = [];
-    // Set column widths for better display
+    
+    // Set column widths and styles for employee summary sheet
     ws1['!cols'] = [
-      { wch: 20 }, // نام کارمند
-      { wch: 15 }, // کد پرسنلی
-      { wch: 20 }, // سمت
-      { wch: 25 }, // مرخصی روزانه
-      { wch: 25 }, // مرخصی ساعتی
-      { wch: 25 }, // کل استفاده شده
-      { wch: 20 }, // مانده
-      { wch: 15 }  // تعداد
+      { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 25 }, 
+      { wch: 25 }, { wch: 25 }, { wch: 20 }, { wch: 15 }
     ];
+    
+    // Apply RTL and center alignment to all cells in ws1
+    const ws1Range = XLSX.utils.decode_range(ws1['!ref'] || 'A1');
+    for (let R = ws1Range.s.r; R <= ws1Range.e.r; ++R) {
+      for (let C = ws1Range.s.c; C <= ws1Range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws1[cellAddress]) continue;
+        
+        ws1[cellAddress].s = {
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+            readingOrder: 2
+          },
+          fill: R === 0 ? { fgColor: { rgb: "E5E7EB" } } : undefined,
+          font: R === 0 ? { bold: true } : undefined
+        };
+      }
+    }
+    
     XLSX.utils.book_append_sheet(wb, ws1, 'خلاصه کارمندان');
     
     // Add detailed leaves sheet
     const ws2 = XLSX.utils.json_to_sheet(leavesData);
-    ws2['!dir'] = 'rtl';
-    if (!ws2['!cols']) ws2['!cols'] = [];
+    
+    // Set column widths for detailed leaves sheet
     ws2['!cols'] = [
-      { wch: 20 }, // نام کارمند
-      { wch: 15 }, // کد پرسنلی
-      { wch: 20 }, // سمت
-      { wch: 15 }, // نوع
-      { wch: 15 }, // دسته‌بندی
-      { wch: 15 }, // تاریخ شروع
-      { wch: 15 }, // تاریخ پایان
-      { wch: 12 }, // ساعت شروع
-      { wch: 12 }, // ساعت پایان
-      { wch: 15 }, // مدت زمان
-      { wch: 30 }, // توضیحات
-      { wch: 15 }  // وضعیت
+      { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, 
+      { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, 
+      { wch: 30 }, { wch: 15 }
     ];
+    
+    // Apply RTL and center alignment to all cells in ws2
+    const ws2Range = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
+    for (let R = ws2Range.s.r; R <= ws2Range.e.r; ++R) {
+      for (let C = ws2Range.s.c; C <= ws2Range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws2[cellAddress]) continue;
+        
+        ws2[cellAddress].s = {
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+            readingOrder: 2
+          },
+          fill: R === 0 ? { fgColor: { rgb: "E5E7EB" } } : undefined,
+          font: R === 0 ? { bold: true } : undefined
+        };
+      }
+    }
+    
     XLSX.utils.book_append_sheet(wb, ws2, 'جزئیات مرخصی‌ها');
     
     // Set workbook properties for RTL
@@ -163,40 +187,6 @@ const Reports: React.FC = () => {
     wb.Workbook.Views = [{
       RTL: true
     }];
-    
-    // تنظیم فرمت راست به چپ و وسط چین برای sheet اول
-    const ws1Range = XLSX.utils.decode_range(ws1['!ref'] || 'A1');
-    for (let R = ws1Range.s.r; R <= ws1Range.e.r; ++R) {
-      for (let C = ws1Range.s.c; C <= ws1Range.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws1[cellAddress]) continue;
-        
-        ws1[cellAddress].s = {
-          alignment: {
-            horizontal: 'center',
-            vertical: 'center',
-            readingOrder: 2 // RTL
-          }
-        };
-      }
-    }
-    
-    // تنظیم فرمت راست به چپ و وسط چین برای sheet دوم
-    const ws2Range = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
-    for (let R = ws2Range.s.r; R <= ws2Range.e.r; ++R) {
-      for (let C = ws2Range.s.c; C <= ws2Range.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws2[cellAddress]) continue;
-        
-        ws2[cellAddress].s = {
-          alignment: {
-            horizontal: 'center',
-            vertical: 'center',
-            readingOrder: 2 // RTL
-          }
-        };
-      }
-    }
     
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -557,4 +547,132 @@ const Reports: React.FC = () => {
   );
 };
 
+// Employee Summary Table Component with Pagination
+const EmployeeSummaryTable: React.FC<{
+  employees: any[];
+  getEmployeeStats: (id: string) => any;
+}> = ({ employees, getEmployeeStats }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  const totalPages = Math.ceil(employees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentEmployees = employees.slice(startIndex, endIndex);
+  
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-medium text-gray-900">خلاصه وضعیت کارمندان</h3>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                کارمند
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                مرخصی روزانه
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                مرخصی ساعتی
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                مانده مرخصی
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                کل مرخصی‌ها
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {currentEmployees.map((employee) => {
+              const stats = getEmployeeStats(employee.id);
+              return (
+                <tr key={employee.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="mr-3">
+                        <div className="text-sm font-medium text-gray-900">
+                          {employee.name} {employee.last_name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {employee.employee_id}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {englishToPersianNumbers(stats.totalDailyDays.toString())} روز
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {formatDuration(stats.totalHourlyMinutes / 60)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      stats.remainingMinutes > (10 * 8 * 60)
+                        ? 'bg-green-100 text-green-800' 
+                        : stats.remainingMinutes > (5 * 8 * 60)
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {formatLeaveBalance(stats.remainingMinutes)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {englishToPersianNumbers(stats.totalLeaves.toString())} مورد
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="text-sm text-gray-700">
+            نمایش {englishToPersianNumbers(startIndex + 1)} تا {englishToPersianNumbers(Math.min(endIndex, employees.length))} از {englishToPersianNumbers(employees.length.toString())} کارمند
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              قبلی
+            </button>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 text-sm border rounded-md ${
+                  currentPage === page
+                    ? 'bg-blue-500 text-white border-blue-500'
+                    : 'border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {englishToPersianNumbers(page.toString())}
+              </button>
+            ))}
+            
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              بعدی
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 export default Reports;
