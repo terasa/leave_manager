@@ -90,7 +90,7 @@ const Reports: React.FC = () => {
     });
 
     // Create detailed leaves data
-    const leavesData = filteredLeaves.map(leave => {
+    const leavesData = leaves.map(leave => {
       const employee = employees.find(emp => emp.id === leave.employee_id);
       return {
         'نام کارمند': employee ? `${employee.name} ${employee.last_name}` : 'نامشخص',
@@ -122,22 +122,32 @@ const Reports: React.FC = () => {
       { wch: 25 }, { wch: 25 }, { wch: 20 }, { wch: 15 }
     ];
     
-    // Apply RTL and center alignment to all cells in ws1
-    const ws1Range = XLSX.utils.decode_range(ws1['!ref'] || 'A1');
-    for (let R = ws1Range.s.r; R <= ws1Range.e.r; ++R) {
-      for (let C = ws1Range.s.c; C <= ws1Range.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws1[cellAddress]) continue;
-        
-        ws1[cellAddress].s = {
-          alignment: {
-            horizontal: 'center',
-            vertical: 'center',
-            readingOrder: 2
-          },
-          fill: R === 0 ? { fgColor: { rgb: "E5E7EB" } } : undefined,
-          font: R === 0 ? { bold: true } : undefined
-        };
+    // Apply styles to employee summary sheet
+    if (ws1['!ref']) {
+      const ws1Range = XLSX.utils.decode_range(ws1['!ref']);
+      for (let R = ws1Range.s.r; R <= ws1Range.e.r; ++R) {
+        for (let C = ws1Range.s.c; C <= ws1Range.e.c; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws1[cellAddress]) continue;
+          
+          if (!ws1[cellAddress].s) ws1[cellAddress].s = {};
+          
+          ws1[cellAddress].s = {
+            alignment: {
+              horizontal: 'center',
+              vertical: 'center',
+              readingOrder: 2
+            },
+            fill: R === 0 ? { fgColor: { rgb: "DBEAFE" } } : undefined,
+            font: R === 0 ? { bold: true, color: { rgb: "1E40AF" } } : undefined,
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            }
+          };
+        }
       }
     }
     
@@ -153,40 +163,36 @@ const Reports: React.FC = () => {
       { wch: 30 }, { wch: 15 }
     ];
     
-    // Apply RTL and center alignment to all cells in ws2
-    const ws2Range = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
-    for (let R = ws2Range.s.r; R <= ws2Range.e.r; ++R) {
-      for (let C = ws2Range.s.c; C <= ws2Range.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws2[cellAddress]) continue;
-        
-        ws2[cellAddress].s = {
-          alignment: {
-            horizontal: 'center',
-            vertical: 'center',
-            readingOrder: 2
-          },
-          fill: R === 0 ? { fgColor: { rgb: "E5E7EB" } } : undefined,
-          font: R === 0 ? { bold: true } : undefined
-        };
+    // Apply styles to detailed leaves sheet
+    if (ws2['!ref']) {
+      const ws2Range = XLSX.utils.decode_range(ws2['!ref']);
+      for (let R = ws2Range.s.r; R <= ws2Range.e.r; ++R) {
+        for (let C = ws2Range.s.c; C <= ws2Range.e.c; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws2[cellAddress]) continue;
+          
+          if (!ws2[cellAddress].s) ws2[cellAddress].s = {};
+          
+          ws2[cellAddress].s = {
+            alignment: {
+              horizontal: 'center',
+              vertical: 'center',
+              readingOrder: 2
+            },
+            fill: R === 0 ? { fgColor: { rgb: "DBEAFE" } } : undefined,
+            font: R === 0 ? { bold: true, color: { rgb: "1E40AF" } } : undefined,
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            }
+          };
+        }
       }
     }
     
     XLSX.utils.book_append_sheet(wb, ws2, 'جزئیات مرخصی‌ها');
-    
-    // Set workbook properties for RTL
-    wb.Props = {
-      Title: 'گزارش مرخصی‌ها',
-      Subject: 'گزارش سیستم مدیریت مرخصی',
-      Author: 'سیستم مدیریت مرخصی',
-      CreatedDate: new Date()
-    };
-    
-    // Set RTL direction for all sheets
-    wb.Workbook = wb.Workbook || {};
-    wb.Workbook.Views = [{
-      RTL: true
-    }];
     
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -194,7 +200,6 @@ const Reports: React.FC = () => {
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
     
-    const jalaaliYear = toJalaali(new Date()).jy;
     saveAs(dataBlob, `گزارش-مرخصی-${englishToPersianNumbers(selectedYear.toString())}-${timestamp}.xlsx`);
   };
 
