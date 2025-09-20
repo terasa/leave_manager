@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Key, CheckCircle, AlertTriangle, Info, Calendar, Clock, Mail, LogIn } from 'lucide-react';
+import { Shield, Key, CheckCircle, AlertTriangle, Info, Calendar, Clock, Mail, LogIn, ShoppingCart, Lock } from 'lucide-react';
 import { useActivation } from '../hooks/useActivation';
 import { useAuth } from '../hooks/useAuth';
 import { englishToPersianNumbers, formatPersianDate } from '../utils/dateHelpers';
@@ -16,6 +16,11 @@ const ActivationPage: React.FC = () => {
   const [requestMessage, setRequestMessage] = useState('');
   const [showSuperAdminLogin, setShowSuperAdminLogin] = useState(false);
   const [superAdminPassword, setSuperAdminPassword] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [showUserLogin, setShowUserLogin] = useState(false);
+  const [showPurchaseOption, setShowPurchaseOption] = useState(false);
+  const [isCheckingUser, setIsCheckingUser] = useState(false);
 
   const activationInfo = getActivationInfo();
 
@@ -120,6 +125,97 @@ const ActivationPage: React.FC = () => {
 
   // اگر کاربر وارد نشده، صفحه ورود نمایش داده شود
   if (!currentUser) {
+    // بررسی وجود کاربر در لیست مشتریان
+    const checkUserExists = async (email: string) => {
+      setIsCheckingUser(true);
+      
+      try {
+        // شبیه‌سازی بررسی در پایگاه داده مشتریان
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // لیست مشتریان موجود (در حالت واقعی از API دریافت می‌شود)
+        const existingCustomers = JSON.parse(localStorage.getItem('admin_customers') || '[]');
+        const customer = existingCustomers.find((c: any) => c.email.toLowerCase() === email.toLowerCase());
+        
+        if (customer && customer.isActive) {
+          // مشتری موجود و فعال است
+          setShowUserLogin(true);
+          setShowPurchaseOption(false);
+        } else if (customer && !customer.isActive) {
+          // مشتری موجود اما غیرفعال است
+          setMessage('حساب کاربری شما غیرفعال شده است. لطفاً با پشتیبانی تماس بگیرید.');
+          setMessageType('error');
+          setShowUserLogin(false);
+          setShowPurchaseOption(false);
+        } else {
+          // مشتری موجود نیست
+          setShowPurchaseOption(true);
+          setShowUserLogin(false);
+        }
+      } catch (error) {
+        setMessage('خطا در بررسی اطلاعات کاربر');
+        setMessageType('error');
+      }
+      
+      setIsCheckingUser(false);
+    };
+
+    const handleUserLogin = async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      if (!userPassword.trim()) {
+        setMessage('لطفاً رمز عبور را وارد کنید');
+        setMessageType('error');
+        return;
+      }
+
+      // بررسی رمز عبور (در حالت واقعی از API بررسی می‌شود)
+      const existingCustomers = JSON.parse(localStorage.getItem('admin_customers') || '[]');
+      const customer = existingCustomers.find((c: any) => c.email.toLowerCase() === userEmail.toLowerCase());
+      
+      if (customer && customer.password === userPassword) {
+        // ورود موفق - ایجاد session برای این مشتری
+        const customerUser = {
+          id: customer.id,
+          username: customer.name,
+          email: customer.email,
+          password: customer.password,
+          role: 'admin' as const,
+          created_at: customer.createdAt
+        };
+        
+        // تنظیم کد فعال‌سازی برای این مشتری
+        const activationData = {
+          isActivated: true,
+          activationCode: customer.activationCode,
+          activatedAt: customer.activatedAt || new Date().toISOString(),
+          expiresAt: customer.expiresAt
+        };
+        
+        localStorage.setItem('activation_status', JSON.stringify(activationData));
+        
+        const success = login(customerUser.username, customerUser.password);
+        if (success) {
+          setMessage('ورود موفق به سیستم');
+          setMessageType('success');
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          setMessage('خطا در ورود');
+          setMessageType('error');
+        }
+      } else {
+        setMessage('رمز عبور اشتباه است');
+        setMessageType('error');
+      }
+    };
+
+    const handlePurchase = () => {
+      // ارجاع به صفحه خرید
+      window.open('https://leave.finet.pro/purchase', '_blank');
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center px-4" style={{ direction: 'rtl' }}>
         <div className="max-w-md w-full">
@@ -175,6 +271,111 @@ const ActivationPage: React.FC = () => {
                   </button>
                 </div>
               </form>
+            ) : showUserLogin ? (
+              /* Customer Login Form */
+              <form onSubmit={handleUserLogin} className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-blue-600" />
+                    <p className="text-blue-800 font-medium">مشتری شناسایی شد</p>
+                  </div>
+                  <p className="text-blue-700 text-sm mt-1">
+                    حساب کاربری شما یافت شد. لطفاً رمز عبور خود را وارد کنید.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ایمیل
+                  </label>
+                  <input
+                    type="email"
+                    value={userEmail}
+                    readOnly
+                    className="block w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    رمز عبور
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="password"
+                      value={userPassword}
+                      onChange={(e) => setUserPassword(e.target.value)}
+                      className="block w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="رمز عبور خود را وارد کنید"
+                      style={{ direction: 'ltr', textAlign: 'left' }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <LogIn className="w-5 h-5" />
+                    ورود به سیستم
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowUserLogin(false);
+                      setUserEmail('');
+                      setUserPassword('');
+                    }}
+                    className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  >
+                    انصراف
+                  </button>
+                </div>
+              </form>
+            ) : showPurchaseOption ? (
+              /* Purchase Option */
+              <div className="space-y-4">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <Info className="w-5 h-5 text-yellow-600" />
+                    <p className="text-yellow-800 font-medium">راهنمای ورود</p>
+                  </div>
+                  <p className="text-yellow-700 text-sm mt-2">
+                    پس از خرید نرم‌افزار، منتظر به فرد خود را در قسمت بالا وارد کنید تا به سیستم مدیریت مرخصی دسترسی پیدا کنید.
+                  </p>
+                </div>
+
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <p className="text-red-800 font-medium">حساب کاربری یافت نشد</p>
+                  </div>
+                  <p className="text-red-700 text-sm mt-2">
+                    ایمیل شما در لیست مشتریان موجود نیست. برای استفاده از سیستم، ابتدا نرم‌افزار را خریداری کنید.
+                  </p>
+                </div>
+
+                <button
+                  onClick={handlePurchase}
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-200 transition-colors font-medium flex items-center justify-center gap-2"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  خرید محصول و دریافت کد فعال‌سازی
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowPurchaseOption(false);
+                    setUserEmail('');
+                  }}
+                  className="w-full bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  بازگشت
+                </button>
+              </div>
             ) : (
               /* Regular User Email Input */
               <div className="space-y-4">
@@ -186,16 +387,52 @@ const ActivationPage: React.FC = () => {
                     <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
                       type="email"
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
                       className="block w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       placeholder="ایمیل خود را وارد کنید"
-                      onBlur={(e) => {
-                        if (isSuperAdminEmail(e.target.value)) {
-                          setShowSuperAdminLogin(true);
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && userEmail.trim()) {
+                          if (isSuperAdminEmail(userEmail)) {
+                            setShowSuperAdminLogin(true);
+                          } else {
+                            checkUserExists(userEmail);
+                          }
                         }
                       }}
                     />
                   </div>
                 </div>
+
+                <button
+                  onClick={() => {
+                    if (!userEmail.trim()) {
+                      setMessage('لطفاً ایمیل خود را وارد کنید');
+                      setMessageType('error');
+                      return;
+                    }
+                    
+                    if (isSuperAdminEmail(userEmail)) {
+                      setShowSuperAdminLogin(true);
+                    } else {
+                      checkUserExists(userEmail);
+                    }
+                  }}
+                  disabled={isCheckingUser}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCheckingUser ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      در حال بررسی...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="w-5 h-5" />
+                      ادامه
+                    </>
+                  )}
+                </button>
                 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center gap-2">
@@ -203,7 +440,7 @@ const ActivationPage: React.FC = () => {
                     <p className="text-blue-800 font-medium">راهنمای ورود</p>
                   </div>
                   <p className="text-blue-700 text-sm mt-2">
-                    پس از خرید نرم‌افزار، کد فعال‌سازی منحصر به فرد خود را در قسمت بالا وارد کنید.
+                    پس از خرید نرم‌افزار، ایمیل و رمز عبور خود را وارد کنید تا به سیستم مدیریت مرخصی دسترسی پیدا کنید.
                   </p>
                 </div>
               </div>
