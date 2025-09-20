@@ -337,8 +337,8 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                             value={activationCode}
                             onChange={handleCodeChange}
                             className="block w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono text-center"
-                            placeholder="XXXX-XXXX-XXXX-XXX"
-                            maxLength={19}
+                            placeholder="HESA-ADMIN-2025-ABC123"
+                            maxLength={50}
                             style={{ direction: 'ltr' }}
                             required
                           />
