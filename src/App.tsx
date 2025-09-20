@@ -38,14 +38,14 @@ function App() {
     return <AdminPanel onLogout={logout} />;
   }
 
-  // اگر فعال‌سازی نشده، صفحه فعال‌سازی نمایش داده شود
-  if (!activationStatus.isActivated) {
-    return <ActivationPage />;
-  }
-
-  // اگر کاربر وارد نشده، صفحه لندینگ نمایش داده شود
+  // اگر کاربر وارد نشده، ابتدا صفحه لندینگ نمایش داده شود
   if (!currentUser) {
     if (showSystemLogin) {
+      // اگر فعال‌سازی نشده، صفحه فعال‌سازی نمایش داده شود
+      if (!activationStatus.isActivated) {
+        return <ActivationPage />;
+      }
+      // اگر فعال‌سازی شده، صفحه لاگین نمایش داده شود
       return (
         <Login
           onLogin={login}
@@ -53,7 +53,13 @@ function App() {
         />
       );
     }
+    // صفحه لندینگ به عنوان صفحه اصلی
     return <LandingPage onEnterSystem={() => setShowSystemLogin(true)} />;
+  }
+
+  // اگر کاربر وارد شده اما فعال‌سازی نشده (این حالت نباید اتفاق بیفتد)
+  if (!activationStatus.isActivated) {
+    return <ActivationPage />;
   }
 
   const renderCurrentPage = () => {
