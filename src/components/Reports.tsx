@@ -37,6 +37,13 @@ const Reports: React.FC = () => {
   const currentYear = currentJalaali.jy;
   const yearRange = Array.from({ length: 101 }, (_, i) => currentYear - 15 + i);
 
+  // Sort employees by employee_id for dropdown
+  const sortedEmployeesForDropdown = [...employees].sort((a, b) => {
+    const aId = parseInt(a.employee_id) || 0;
+    const bId = parseInt(b.employee_id) || 0;
+    return aId - bId;
+  });
+
   const filteredLeaves = leaves.filter(leave => {
     const leaveDate = new Date(leave.start_date);
     const leaveJalaali = toJalaali(leaveDate);
@@ -173,9 +180,38 @@ const Reports: React.FC = () => {
       };
     });
     
+    // مرتب‌سازی مرخصی‌ها بر اساس نام خانوادگی
+    const sortedLeaves = [...leaves].sort((a, b) => {
+      const employeeA = employees.find(emp => emp.id === a.employee_id);
+      const employeeB = employees.find(emp => emp.id === b.employee_id);
+      const lastNameA = employeeA?.last_name || '';
+      const lastNameB = employeeB?.last_name || '';
+      return lastNameA.localeCompare(lastNameB, 'fa');
+    });
+
+    // رنگ‌های متناوب برای کارمندان مختلف
+    const alternatingColors = [
+      'FFFFFFFF', // سفید
+      'FFF8F9FA', // خاکستری خیلی روشن
+      'FFF3E5F5', // بنفش خیلی روشن
+      'FFE8F5E8', // سبز خیلی روشن
+      'FFFEF7E0', // زرد خیلی روشن
+      'FFE3F2FD'  // آبی خیلی روشن
+    ];
+    
+    let currentEmployeeId = '';
+    let colorIndex = 0;
+    
     // داده‌ها
-    leaves.forEach(leave => {
+    sortedLeaves.forEach(leave => {
       const employee = employees.find(emp => emp.id === leave.employee_id);
+      
+      // تغییر رنگ برای کارمند جدید
+      if (leave.employee_id !== currentEmployeeId) {
+        currentEmployeeId = leave.employee_id;
+        colorIndex = (colorIndex + 1) % alternatingColors.length;
+      }
+      
       const row = ws2.addRow([
         employee ? `${employee.name} ${employee.last_name}` : 'نامشخص',
         employee ? englishToPersianNumbers(employee.employee_id) : '-',
@@ -198,6 +234,12 @@ const Reports: React.FC = () => {
           horizontal: 'center', 
           vertical: 'middle', 
           readingOrder: 'rtl'
+        };
+        // اعمال رنگ پس‌زمینه متناوب
+        cell.fill = { 
+          type: 'pattern', 
+          pattern: 'solid', 
+          fgColor: { argb: alternatingColors[colorIndex] } 
         };
       });
       
@@ -233,11 +275,46 @@ const Reports: React.FC = () => {
     ];
     
     // دانلود
+    const getMonthName = (monthNumber: number) => {
+      const month = months.find(m => m.value === monthNumber);
+      return month ? month.label : '';
+    };
+    
+    const getFilenameParts = () => {
+      let yearPart = '';
+      let monthPart = '';
+      
+      if (selectedYear) {
+        yearPart = englishToPersianNumbers(selectedYear.toString());
+      }
+      
+      if (selectedMonth) {
+        monthPart = getMonthName(parseInt(selectedMonth));
+      } else {
+        monthPart = 'تمام-ماه‌ها';
+      }
+      
+      return { yearPart, monthPart };
+    };
+    
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    const { yearPart, monthPart } = getFilenameParts();
+    let filename = 'گزارش-مرخصی';
+    
+    if (yearPart) {
+      filename += `-${yearPart}`;
+      if (monthPart) {
+        filename += `-${monthPart}`;
+      }
+    }
+    
+    filename += `-${timestamp}.xlsx`;
+    
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer]);
-    saveAs(blob, `گزارش-مرخصی-${timestamp}.xlsx`);
+    saveAs(blob, filename);
   };
 
   return (
@@ -275,9 +352,9 @@ const Reports: React.FC = () => {
               className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">همه کارمندان</option>
-              {employees.map((employee) => (
+              {sortedEmployeesForDropdown.map((employee) => (
                 <option key={employee.id} value={employee.id}>
-                  {employee.name} {employee.last_name}
+                  {englishToPersianNumbers(employee.employee_id)} - {employee.name} {employee.last_name}
                 </option>
               ))}
             </select>
