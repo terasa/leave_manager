@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Save, Lock, Settings as SettingsIcon, Calendar, User, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Save, Lock, Settings as SettingsIcon, Calendar, User, Plus, Edit2, Trash2, Shield, Key } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useAuth } from '../hooks/useAuth';
+import { useActivation } from '../hooks/useActivation';
 import { useLogger } from '../hooks/useLogger';
 import { User as UserType } from '../types';
 import { englishToPersianNumbers, persianToEnglishNumbers, formatPersianDate } from '../utils/dateHelpers';
@@ -9,6 +10,7 @@ import { englishToPersianNumbers, persianToEnglishNumbers, formatPersianDate } f
 const Settings: React.FC = () => {
   const { settings, saveSettings } = useLocalStorage();
   const { changePassword, addUser, updateUser, deleteUser, getUsers, currentUser } = useAuth();
+  const { getActivationInfo, deactivate } = useActivation();
   const { addLog } = useLogger();
 
   const [annualLeaveLimit, setAnnualLeaveLimit] = useState(settings.annual_leave_limit.toString());
@@ -31,6 +33,7 @@ const Settings: React.FC = () => {
   const [userError, setUserError] = useState('');
   
   const users = getUsers();
+  const activationInfo = getActivationInfo();
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
@@ -539,7 +542,134 @@ const Settings: React.FC = () => {
       </div>
 
       {/* System Information */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">اطلاعات سیستم</h3>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">نسخه سیستم</h4>
+                <p className="text-sm text-gray-900">۱.۰.۰</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">آخرین بروزرسانی</h4>
+                <p className="text-sm text-gray-900">
+                  {formatPersianDate(new Date(settings.updated_at))}
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">محل ذخیره‌سازی</h4>
+                <p className="text-sm text-gray-900">مرورگر محلی</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">وضعیت سیستم</h4>
+                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                  فعال
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* License Information */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              اطلاعات مجوز
+            </h3>
+          </div>
+          
+          <div className="p-6">
+            {activationInfo ? (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">وضعیت مجوز</h4>
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                    فعال
+                  </span>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">نوع مجوز</h4>
+                  <p className="text-sm text-gray-900">{activationInfo.licenseType}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">کد فعال‌سازی</h4>
+                  <p className="text-xs text-gray-900 font-mono bg-gray-50 p-2 rounded">
+                    {activationInfo.code}
+                  </p>
+                </div>
+                
+                {activationInfo.activatedAt && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">تاریخ فعال‌سازی</h4>
+                    <p className="text-sm text-gray-900">
+                      {formatPersianDate(new Date(activationInfo.activatedAt))}
+                    </p>
+                  </div>
+                )}
+                
+                {activationInfo.expiresAt && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">تاریخ انقضا</h4>
+                    <p className={`text-sm ${activationInfo.isExpired ? 'text-red-600 font-medium' : 'text-gray-900'}`}>
+                      {formatPersianDate(new Date(activationInfo.expiresAt))}
+                    </p>
+                  </div>
+                )}
+                
+                {activationInfo.daysRemaining !== null && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">روزهای باقی‌مانده</h4>
+                    <p className={`text-sm font-medium ${
+                      activationInfo.daysRemaining <= 7 ? 'text-red-600' : 
+                      activationInfo.daysRemaining <= 30 ? 'text-yellow-600' : 'text-green-600'
+                    }`}>
+                      {englishToPersianNumbers(activationInfo.daysRemaining.toString())} روز
+                    </p>
+                  </div>
+                )}
+                
+                {currentUser?.role === 'admin' && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => {
+                        if (confirm('آیا از غیرفعال کردن نرم‌افزار اطمینان دارید؟')) {
+                          deactivate();
+                          window.location.reload();
+                        }
+                      }}
+                      className="text-red-600 hover:text-red-800 text-sm flex items-center gap-2"
+                    >
+                      <Key className="w-4 h-4" />
+                      غیرفعال کردن نرم‌افزار
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Shield className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">اطلاعات مجوز</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  اطلاعات مجوز در دسترس نیست
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Old System Information section - remove this */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200" style={{ display: 'none' }}>
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">اطلاعات سیستم</h3>
         </div>
