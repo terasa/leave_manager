@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { useActivation } from './hooks/useActivation';
-import Login from './components/Login';
+import LandingPage from './components/LandingPage';
 import ActivationPage from './components/ActivationPage';
+import Login from './components/Login';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import EmployeeManagement from './components/EmployeeManagement';
@@ -12,11 +13,13 @@ import Settings from './components/Settings';
 import SystemLogs from './components/SystemLogs';
 import Backup from './components/Backup';
 import About from './components/About';
+import AdminPanel from './components/AdminPanel';
 
 function App() {
   const { currentUser, loading, login, logout } = useAuth();
   const { activationStatus, loading: activationLoading } = useActivation();
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [showSystemLogin, setShowSystemLogin] = useState(false);
 
   if (loading || activationLoading) {
     return (
@@ -26,15 +29,31 @@ function App() {
     );
   }
 
-  // بررسی فعال‌سازی نرم‌افزار
+  // بررسی دسترسی مدیر کل (Super Admin)
+  const isSuperAdmin = currentUser?.email === 'ehsantaj@yahoo.com' || 
+                      activationStatus.activationCode === 'SUPER-ADMIN-2025';
+
+  // اگر مدیر کل است، پنل مدیریت نمایش داده شود
+  if (isSuperAdmin && currentUser) {
+    return <AdminPanel onLogout={logout} />;
+  }
+
+  // اگر فعال‌سازی نشده، صفحه فعال‌سازی نمایش داده شود
   if (!activationStatus.isActivated) {
     return <ActivationPage />;
   }
 
+  // اگر کاربر وارد نشده، صفحه لندینگ نمایش داده شود
   if (!currentUser) {
+    return <LandingPage onEnterSystem={() => setShowSystemLogin(true)} />;
+  }
+
+  // اگر درخواست ورود به سیستم داده شده، صفحه لاگین نمایش داده شود
+  if (showSystemLogin) {
     return (
       <Login
         onLogin={login}
+        onBackToHome={() => setShowSystemLogin(false)}
       />
     );
   }
