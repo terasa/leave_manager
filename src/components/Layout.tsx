@@ -8,7 +8,8 @@ import {
   Menu, 
   X,
   Home,
-  FileText
+  FileText,
+  Info
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -33,6 +34,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onLo
       { id: 'settings', label: 'تنظیمات', icon: Settings },
       { id: 'logs', label: 'لاگ سیستم', icon: FileText }
     ] : []),
+    { id: 'about', label: 'درباره برنامه', icon: Info },
   ];
 
   return (
@@ -40,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onLo
       {/* Sidebar */}
       <div className={`fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <h1 className="text-lg lg:text-xl font-bold text-gray-900">سیستم مدیریت مرخصی</h1>
+          <h1 className="text-lg lg:text-xl font-bold text-gray-900">سیستم مدیریت مرخصی حسا</h1>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600"

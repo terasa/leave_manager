@@ -97,17 +97,17 @@ const Dashboard: React.FC = () => {
                 {recentLeaves.map((leave) => {
                   const employee = employees.find(emp => emp.id === leave.employee_id);
                   return (
-                    <div key={leave.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div key={leave.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">
                           {employee ? `${employee.name} ${employee.last_name}` : 'نامشخص'}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs text-gray-600">
                           {leave.type === 'daily' ? 'مرخصی روزانه' : 'مرخصی ساعتی'}
                         </p>
                       </div>
                       <div className="text-left">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-xs font-medium text-gray-900">
                           {leave.type === 'daily' 
                             ? `${englishToPersianNumbers(leave.duration.toString())} روز`
                             : formatDuration(leave.duration)

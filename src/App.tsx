@@ -9,6 +9,7 @@ import Reports from './components/Reports';
 import Settings from './components/Settings';
 import SystemLogs from './components/SystemLogs';
 import Backup from './components/Backup';
+import About from './components/About';
 
 function App() {
   const { currentUser, loading, login, logout } = useAuth();
@@ -46,6 +47,8 @@ function App() {
         return <Settings />;
       case 'logs':
         return <SystemLogs />;
+      case 'about':
+        return <About />;
       default:
         return <Dashboard />;
     }
