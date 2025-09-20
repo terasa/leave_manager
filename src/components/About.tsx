@@ -136,7 +136,7 @@ const About: React.FC = () => {
             <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <User className="w-6 h-6 text-blue-600" />
             </div>
-            <h4 className="text-lg font-medium text-gray-900 mb-2">احسان تجدینی</h4>
+            <h4 className="text-lg font-medium text-gray-900 mb-2">احسان تاج الدینی</h4>
             <p className="text-gray-600 mb-4">توسعه‌دهنده نرم‌افزار</p>
             
             <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
@@ -166,7 +166,7 @@ const About: React.FC = () => {
             
             <div className="text-sm text-gray-600 space-y-2">
               <p>
-                © {englishToPersianNumbers('2025')} احسان تجدینی. تمامی حقوق محفوظ است.
+                © {englishToPersianNumbers('2025')} احسان تاج الدینی. تمامی حقوق محفوظ است.
               </p>
               <p>
                 این نرم‌افزار تحت مجوز اختصاصی توسعه یافته و استفاده تجاری از آن منوط به کسب مجوز از سازنده است.
