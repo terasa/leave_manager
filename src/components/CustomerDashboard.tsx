@@ -209,7 +209,17 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             </div>
             {isActivated && !isExpired && (
               <button
-                onClick={onEnterSystem}
+                onClick={() => {
+                  // تنظیم activation status و تازه‌سازی صفحه
+                  const activationData = {
+                    isActivated: true,
+                    activationCode: customer.activationCode,
+                    activatedAt: customer.activatedAt,
+                    expiresAt: customer.expiresAt
+                  };
+                  localStorage.setItem('activation_status', JSON.stringify(activationData));
+                  window.location.reload();
+                }}
                 className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
               >
                 ورود به سیستم

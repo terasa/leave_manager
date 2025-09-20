@@ -154,10 +154,27 @@ function App() {
       
       // ورود موفق
       setCustomerData(customer);
-      setShowCustomerDashboard(true);
       setShowCustomerLogin(false);
       
       addCustomerLog(customer.id, customer.email, 'login', 'ورود به پنل مشتری');
+      
+      // بررسی وضعیت فعال‌سازی
+      if (!customer.isActivated || (customer.expiresAt && new Date(customer.expiresAt) < new Date())) {
+        // اگر فعال نشده یا منقضی شده، به پنل مشتری برود
+        setShowCustomerDashboard(true);
+      } else {
+        // اگر فعال است، مستقیماً به صفحه ورود نرم‌افزار برود
+        setCustomerData(customer);
+        // تنظیم activation status برای نرم‌افزار
+        const activationData = {
+          isActivated: true,
+          activationCode: customer.activationCode,
+          activatedAt: customer.activatedAt,
+          expiresAt: customer.expiresAt
+        };
+        localStorage.setItem('activation_status', JSON.stringify(activationData));
+        // نرم‌افزار لود می‌شود
+      }
       
       return { success: true, customer, message: 'ورود موفق' };
     };

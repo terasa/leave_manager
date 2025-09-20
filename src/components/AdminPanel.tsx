@@ -20,7 +20,10 @@ import {
   Eye,
   FileText,
   Activity,
-  Clock,
+  BarChart3,
+  Key,
+  Eye,
+  EyeOff
   UserCheck,
   UserX,
   RefreshCw,

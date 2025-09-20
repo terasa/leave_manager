@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Lock, User, Shield, Mail, Eye, EyeOff, Key, Clock, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { englishToPersianNumbers, formatPersianDateTime } from '../utils/dateHelpers';
+import { supabase } from '../lib/supabase';
+import { addCustomerLog } from '../hooks/useLogger';
 
 interface CustomerLoginProps {
   onLogin: (email: string, password: string) => { success: boolean; customer?: any; message?: string };
