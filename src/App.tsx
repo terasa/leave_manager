@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
+import { useActivation } from './hooks/useActivation';
 import Login from './components/Login';
+import ActivationPage from './components/ActivationPage';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import EmployeeManagement from './components/EmployeeManagement';
@@ -13,14 +15,20 @@ import About from './components/About';
 
 function App() {
   const { currentUser, loading, login, logout } = useAuth();
+  const { activationStatus, loading: activationLoading } = useActivation();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
-  if (loading) {
+  if (loading || activationLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
+  }
+
+  // بررسی فعال‌سازی نرم‌افزار
+  if (!activationStatus.isActivated) {
+    return <ActivationPage />;
   }
 
   if (!currentUser) {
