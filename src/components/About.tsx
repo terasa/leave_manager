@@ -122,67 +122,13 @@ const About: React.FC = () => {
         </div>
       </div>
 
-      {/* Developer Info */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-            <User className="w-5 h-5" />
-            اطلاعات سازنده
-          </h3>
-        </div>
-        
-        <div className="p-6">
-          <div className="text-center">
-            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-              <User className="w-6 h-6 text-blue-600" />
-            </div>
-            <h4 className="text-lg font-medium text-gray-900 mb-2">احسان تاج الدینی</h4>
-            <p className="text-gray-600 mb-4">توسعه‌دهنده نرم‌افزار</p>
-            
-            <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
-              <p className="mb-2">
-                این نرم‌افزار با استفاده از تکنولوژی‌های مدرن وب شامل React، TypeScript و Tailwind CSS توسعه یافته است.
-              </p>
-              <p>
-                طراحی رابط کاربری با در نظر گیری اصول UX/UI و سازگاری کامل با زبان فارسی انجام شده است.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Copyright */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">حق نشر و مجوز</h3>
-        </div>
-        
-        <div className="p-6">
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 text-red-500">
-              <Heart className="w-5 h-5" />
-              <span className="text-sm">ساخته شده با عشق در ایران</span>
-            </div>
-            
-            <div className="text-sm text-gray-600 space-y-2">
-              <p>
-                © {englishToPersianNumbers('2025')} احسان تاج الدینی. تمامی حقوق محفوظ است.
-              </p>
-              <p>
-                این نرم‌افزار تحت مجوز اختصاصی توسعه یافته و استفاده تجاری از آن منوط به کسب مجوز از سازنده است.
-              </p>
-              <p className="text-xs text-gray-500">
-                نسخه {englishToPersianNumbers('1.0.0')} - آخرین بروزرسانی: {englishToPersianNumbers('1404/01/01')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Technical Info */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">مشخصات فنی</h3>
+          <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+            <Info className="w-5 h-5" />
+            مشخصات فنی
+          </h3>
         </div>
         
         <div className="p-6">
@@ -209,6 +155,52 @@ const About: React.FC = () => {
                 <li>• خروجی Excel با فرمت فارسی</li>
                 <li>• تقویم شمسی تعاملی</li>
               </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Developer Info and Copyright */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+            <User className="w-5 h-5" />
+            اطلاعات سازنده و حق نشر
+          </h3>
+        </div>
+        
+        <div className="p-6">
+          <div className="text-center space-y-6">
+            <div>
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <User className="w-8 h-8 text-blue-600" />
+              </div>
+              <h4 className="text-xl font-bold text-gray-900 mb-2">احسان تجدینی</h4>
+              <p className="text-gray-600 mb-2">توسعه‌دهنده نرم‌افزار</p>
+              <p className="text-blue-600 text-sm">ehsantaj@yahoo.com</p>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
+              <p className="mb-2">
+                این نرم‌افزار با استفاده از تکنولوژی‌های مدرن وب شامل React، TypeScript و Tailwind CSS توسعه یافته است.
+              </p>
+              <p>
+                طراحی رابط کاربری با در نظر گیری اصول UX/UI و سازگاری کامل با زبان فارسی انجام شده است.
+              </p>
+            </div>
+            
+            <div className="border-t border-gray-200 pt-4">
+              <div className="text-sm text-gray-600 space-y-2">
+                <p className="font-medium">
+                  © {englishToPersianNumbers('2025')} احسان تجدینی. تمامی حقوق محفوظ است.
+                </p>
+                <p>
+                  این نرم‌افزار تحت مجوز اختصاصی توسعه یافته و استفاده تجاری از آن منوط به کسب مجوز از سازنده است.
+                </p>
+                <p className="text-xs text-gray-500">
+                  نسخه {englishToPersianNumbers('1.0.0')} - آخرین بروزرسانی: {englishToPersianNumbers('1404/01/01')}
+                </p>
+              </div>
             </div>
           </div>
         </div>
