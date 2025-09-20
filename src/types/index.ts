@@ -28,6 +28,7 @@ export interface Leave {
 export interface User {
   id: string;
   username: string;
+  email?: string;
   password: string;
   role: 'admin' | 'user';
   created_at: string;

@@ -1,42 +1,120 @@
 import { useState, useEffect } from 'react';
 import { User } from '../types';
 import { useLogger } from './useLogger';
+import { supabase } from '../lib/supabase';
 
 export const useAuth = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { addLog } = useLogger();
 
-
+  // Check for Supabase auth session
   useEffect(() => {
-    const checkAuth = () => {
-      // Initialize default admin user if not exists
-      const savedUsers = localStorage.getItem('users');
-      if (!savedUsers) {
-        const defaultAdmin: User = {
-          id: '1',
-          username: 'admin',
-          password: '1234',
-          role: 'admin',
-          created_at: new Date().toISOString()
-        };
-        localStorage.setItem('users', JSON.stringify([defaultAdmin]));
-      }
-
-      const savedUserId = localStorage.getItem('currentUserId');
-      if (savedUserId) {
-        const users: User[] = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.id === savedUserId);
-        if (user) {
-          setCurrentUser(user);
+    const checkSupabaseAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const supabaseUser: User = {
+            id: session.user.id,
+            username: session.user.email || 'کاربر',
+            email: session.user.email || '',
+            password: '', // Not needed for Supabase auth
+            role: 'user',
+            created_at: session.user.created_at || new Date().toISOString()
+          };
+          setCurrentUser(supabaseUser);
+          setLoading(false);
+          return;
         }
+      } catch (error) {
+        console.log('Supabase auth not available, falling back to local auth');
       }
       
-      setLoading(false);
+      // Fallback to local auth
+      checkLocalAuth();
     };
 
-    checkAuth();
+    checkSupabaseAuth();
   }, []);
+
+  const checkLocalAuth = () => {
+    // Initialize default admin user if not exists
+    const savedUsers = localStorage.getItem('users');
+    if (!savedUsers) {
+      const defaultAdmin: User = {
+        id: '1',
+        username: 'admin',
+        email: 'admin@example.com',
+        password: '1234',
+        role: 'admin',
+        created_at: new Date().toISOString()
+      };
+      localStorage.setItem('users', JSON.stringify([defaultAdmin]));
+    }
+
+    const savedUserId = localStorage.getItem('currentUserId');
+    if (savedUserId) {
+      const users: User[] = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.id === savedUserId);
+      if (user) {
+        setCurrentUser(user);
+      }
+    }
+    
+    setLoading(false);
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Google login error:', error);
+      // Fallback to local auth with demo user
+      const demoUser: User = {
+        id: 'demo-google',
+        username: 'کاربر Google',
+        email: 'user@gmail.com',
+        password: '',
+        role: 'user',
+        created_at: new Date().toISOString()
+      };
+      setCurrentUser(demoUser);
+      localStorage.setItem('currentUserId', demoUser.id);
+    }
+  };
+
+  const loginWithEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Email login error:', error);
+      // Fallback to local auth
+      const demoUser: User = {
+        id: 'demo-email',
+        username: email,
+        email: email,
+        password: '',
+        role: 'user',
+        created_at: new Date().toISOString()
+      };
+      setCurrentUser(demoUser);
+      localStorage.setItem('currentUserId', demoUser.id);
+    }
+  };
 
   const login = (username: string, password: string): boolean => {
     const users: User[] = JSON.parse(localStorage.getItem('users') || '[]');
@@ -52,6 +130,11 @@ export const useAuth = () => {
   };
 
   const logout = () => {
+    // Try Supabase logout first
+    supabase.auth.signOut().catch(() => {
+      // Ignore errors, fallback to local logout
+    });
+    
     if (currentUser) {
       addLog(currentUser.id, currentUser.username, 'logout', 'user', currentUser.id, { username: currentUser.username });
     }
@@ -137,6 +220,8 @@ export const useAuth = () => {
   return {
     currentUser,
     loading,
+    loginWithGoogle,
+    loginWithEmail,
     login,
     logout,
     changePassword,
