@@ -20,7 +20,6 @@ import {
   Eye,
   FileText,
   Activity,
-  BarChart3,
   Key,
   Eye,
   EyeOff
