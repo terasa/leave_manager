@@ -45,17 +45,15 @@ function App() {
 
   // اگر کاربر وارد نشده، صفحه لندینگ نمایش داده شود
   if (!currentUser) {
+    if (showSystemLogin) {
+      return (
+        <Login
+          onLogin={login}
+          onBackToHome={() => setShowSystemLogin(false)}
+        />
+      );
+    }
     return <LandingPage onEnterSystem={() => setShowSystemLogin(true)} />;
-  }
-
-  // اگر درخواست ورود به سیستم داده شده، صفحه لاگین نمایش داده شود
-  if (showSystemLogin) {
-    return (
-      <Login
-        onLogin={login}
-        onBackToHome={() => setShowSystemLogin(false)}
-      />
-    );
   }
 
   const renderCurrentPage = () => {
