@@ -82,6 +82,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedCustomerForSettings, setSelectedCustomerForSettings] = useState<Customer | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordCustomer, setPasswordCustomer] = useState<any>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   
@@ -1320,6 +1324,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
                           className="text-blue-600 hover:text-blue-800"
                         >
                           <Copy className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => handleManageCustomerPassword(customer)}
+                          className="text-green-600 hover:text-green-900 p-1"
+                          title="مدیریت رمز عبور"
+                        >
+                          <Key className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
