@@ -84,6 +84,12 @@ function App() {
         
         setCustomerData({ ...customer, isActivated: true, activatedAt: new Date().toISOString() });
         addCustomerLog(customer.id, customer.email, 'activation_success', 'نرم‌افزار با موفقیت فعال شد');
+        
+        // بعد از فعال‌سازی موفق، کاربر را از پنل مشتری خارج کن
+        setTimeout(() => {
+          setShowCustomerDashboard(false);
+          setCustomerData(null);
+        }, 3000);
       }
       
       return result;
@@ -118,11 +124,6 @@ function App() {
         onLogout={() => {
           setShowCustomerDashboard(false);
           setCustomerData(null);
-        }}
-        onEnterSystem={() => {
-          // ورود به سیستم اصلی
-          setShowCustomerDashboard(false);
-          // اینجا باید سیستم اصلی لود شود
         }}
       />
     );

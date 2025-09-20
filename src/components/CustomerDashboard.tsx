@@ -22,15 +22,13 @@ interface CustomerDashboardProps {
   onActivate: (code: string) => Promise<{ success: boolean; message: string }>;
   onChangePassword: (oldPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   onLogout: () => void;
-  onEnterSystem: () => void;
 }
 
 const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ 
   customer, 
   onActivate, 
   onChangePassword, 
-  onLogout,
-  onEnterSystem 
+  onLogout
 }) => {
   const [activeTab, setActiveTab] = useState<'activation' | 'account' | 'settings'>('activation');
   const [activationCode, setActivationCode] = useState('');
@@ -66,8 +64,12 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       
       if (result.success) {
         setActivationCode('');
+        // بعد از فعال‌سازی موفق، به صفحه ورود نرم‌افزار هدایت شود
+        showMessage('نرم‌افزار با موفقیت فعال شد. در حال هدایت به صفحه ورود...', 'success');
         setTimeout(() => {
-          onEnterSystem();
+          // خروج از پنل مشتری و ورود به سیستم اصلی
+          onLogout();
+          window.location.reload();
         }, 2000);
       }
     } catch (error) {
@@ -210,14 +212,8 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             {isActivated && !isExpired && (
               <button
                 onClick={() => {
-                  // تنظیم activation status و تازه‌سازی صفحه
-                  const activationData = {
-                    isActivated: true,
-                    activationCode: customer.activationCode,
-                    activatedAt: customer.activatedAt,
-                    expiresAt: customer.expiresAt
-                  };
-                  localStorage.setItem('activation_status', JSON.stringify(activationData));
+                  // خروج از پنل مشتری و ورود به سیستم نرم‌افزار
+                  onLogout();
                   window.location.reload();
                 }}
                 className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
