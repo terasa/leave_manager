@@ -109,14 +109,12 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   };
 
   const formatActivationCode = (code: string) => {
-    const cleanCode = code.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    const formatted = cleanCode.match(/.{1,4}/g)?.join('-') || cleanCode;
-    return formatted;
+    // فقط حروف بزرگ کن، فرمت را تغییر نده
+    return code.toUpperCase();
   };
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatActivationCode(e.target.value);
-    setActivationCode(formatted);
+    setActivationCode(formatActivationCode(e.target.value));
   };
 
   const isActivated = customer.isActivated;
