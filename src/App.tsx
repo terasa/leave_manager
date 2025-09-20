@@ -85,10 +85,13 @@ function App() {
         setCustomerData({ ...customer, isActivated: true, activatedAt: new Date().toISOString() });
         addCustomerLog(customer.id, customer.email, 'activation_success', 'نرم‌افزار با موفقیت فعال شد');
         
-        // بعد از فعال‌سازی موفق، کاربر را از پنل مشتری خارج کن
+        // بعد از فعال‌سازی موفق، هدایت به صفحه ورود نرم‌افزار
         setTimeout(() => {
           setShowCustomerDashboard(false);
           setCustomerData(null);
+          setShowCustomerLogin(false);
+          // تنظیم وضعیت برای هدایت به صفحه ورود نرم‌افزار
+          window.location.reload();
         }, 3000);
       }
       
@@ -160,12 +163,14 @@ function App() {
       addCustomerLog(customer.id, customer.email, 'login', 'ورود به پنل مشتری');
       
       // بررسی وضعیت فعال‌سازی
-      if (!customer.isActivated || (customer.expiresAt && new Date(customer.expiresAt) < new Date())) {
+      if (!customer.isActivated) {
         // اگر فعال نشده یا منقضی شده، به پنل مشتری برود
         setShowCustomerDashboard(true);
+      } else if (customer.expiresAt && new Date(customer.expiresAt) < new Date()) {
+        // اگر منقضی شده، به پنل مشتری برود
+        setShowCustomerDashboard(true);
       } else {
-        // اگر فعال است، مستقیماً به صفحه ورود نرم‌افزار برود
-        setCustomerData(customer);
+        // اگر فعال است، تنظیم activation status و خروج از صفحه لاگین
         // تنظیم activation status برای نرم‌افزار
         const activationData = {
           isActivated: true,
@@ -174,7 +179,9 @@ function App() {
           expiresAt: customer.expiresAt
         };
         localStorage.setItem('activation_status', JSON.stringify(activationData));
-        // نرم‌افزار لود می‌شود
+        
+        // خروج از صفحه لاگین و هدایت به نرم‌افزار
+        setShowCustomerLogin(false);
       }
       
       return { success: true, customer, message: 'ورود موفق' };
