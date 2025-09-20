@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface ActivationStatus {
   isActivated: boolean;
@@ -9,13 +10,34 @@ interface ActivationStatus {
 
 // کدهای فعال‌سازی از پیش تعریف شده (بعداً با API جایگزین می‌شود)
 const VALID_ACTIVATION_CODES = [
-  'HESA-2025-DEMO-001',
-  'HESA-2025-FULL-002',
-  'HESA-2025-TRIAL-003',
-  'HESA-ADMIN-2025-004',
-  'HESA-PRO-LICENSE-005'
+  'HESA-ADMIN-2025-001',
+  'HESA-TRIAL-2025-002'
 ];
 
+// تولید شناسه منحصر به فرد برای دستگاه
+const generateDeviceFingerprint = (): string => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx?.fillText('Device fingerprint', 10, 10);
+  const canvasFingerprint = canvas.toDataURL();
+  
+  const fingerprint = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width + 'x' + screen.height,
+    new Date().getTimezoneOffset(),
+    canvasFingerprint.slice(-50)
+  ].join('|');
+  
+  // ساده‌سازی به hash
+  let hash = 0;
+  for (let i = 0; i < fingerprint.length; i++) {
+    const char = fingerprint.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // تبدیل به 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+};
 export const useActivation = () => {
   const [activationStatus, setActivationStatus] = useState<ActivationStatus>({
     isActivated: false
@@ -58,9 +80,58 @@ export const useActivation = () => {
     return VALID_ACTIVATION_CODES.includes(cleanCode);
   };
 
-  const activate = (code: string): { success: boolean; message: string } => {
+  const activate = async (code: string): Promise<{ success: boolean; message: string }> => {
     const cleanCode = code.trim().toUpperCase();
     
+    try {
+      // تولید شناسه دستگاه
+      const deviceFingerprint = generateDeviceFingerprint();
+      
+      // ارسال درخواست به Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('validate-activation', {
+        body: {
+          code: cleanCode,
+          deviceFingerprint,
+          userAgent: navigator.userAgent,
+          ipAddress: 'client' // در محیط مرورگر نمی‌توان IP واقعی دریافت کرد
+        }
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        // fallback به روش محلی
+        return activateLocally(cleanCode);
+      }
+
+      if (data.success) {
+        const activationData: ActivationStatus = {
+          isActivated: true,
+          activationCode: cleanCode,
+          activatedAt: new Date().toISOString(),
+          expiresAt: data.expiresAt
+        };
+
+        localStorage.setItem('activation_status', JSON.stringify(activationData));
+        setActivationStatus(activationData);
+
+        return {
+          success: true,
+          message: data.message || 'نرم‌افزار با موفقیت فعال شد'
+        };
+      } else {
+        return {
+          success: false,
+          message: data.message || 'خطا در فعال‌سازی'
+        };
+      }
+    } catch (error) {
+      console.error('Activation error:', error);
+      // fallback به روش محلی
+      return activateLocally(cleanCode);
+    }
+  };
+
+  const activateLocally = (cleanCode: string): { success: boolean; message: string } => {
     if (!validateActivationCode(cleanCode)) {
       return {
         success: false,
@@ -80,12 +151,12 @@ export const useActivation = () => {
     // تعیین تاریخ انقضا بر اساس نوع کد
     let expiresAt: string | undefined;
     if (cleanCode.includes('TRIAL')) {
-      // کدهای آزمایشی 30 روز اعتبار دارند
+      // کدهای آزمایشی 1 روز اعتبار دارند
       const expiry = new Date();
-      expiry.setDate(expiry.getDate() + 30);
+      expiry.setDate(expiry.getDate() + 1);
       expiresAt = expiry.toISOString();
     }
-    // کدهای FULL و PRO بدون انقضا هستند
+    // کدهای ADMIN بدون انقضا هستند
 
     const activationData: ActivationStatus = {
       isActivated: true,
@@ -129,12 +200,8 @@ export const useActivation = () => {
     // تعیین نوع مجوز
     if (activationStatus.activationCode?.includes('TRIAL')) {
       info.licenseType = 'آزمایشی';
-    } else if (activationStatus.activationCode?.includes('FULL')) {
-      info.licenseType = 'کامل';
-    } else if (activationStatus.activationCode?.includes('PRO')) {
-      info.licenseType = 'حرفه‌ای';
-    } else if (activationStatus.activationCode?.includes('DEMO')) {
-      info.licenseType = 'نمایشی';
+    } else if (activationStatus.activationCode?.includes('ADMIN')) {
+      info.licenseType = 'مدیریت';
     }
 
     // محاسبه روزهای باقی‌مانده

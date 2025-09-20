@@ -23,9 +23,8 @@ const ActivationPage: React.FC = () => {
 
     setLoading(true);
     
-    // شبیه‌سازی تأخیر شبکه
-    setTimeout(() => {
-      const result = activate(activationCode);
+    try {
+      const result = await activate(activationCode);
       setMessage(result.message);
       setMessageType(result.success ? 'success' : 'error');
       
@@ -38,7 +37,11 @@ const ActivationPage: React.FC = () => {
       }
       
       setLoading(false);
-    }, 1500);
+    } catch (error) {
+      setMessage('خطا در ارتباط با سرور');
+      setMessageType('error');
+      setLoading(false);
+    }
   };
 
   const formatActivationCode = (code: string) => {
@@ -189,16 +192,12 @@ const ActivationPage: React.FC = () => {
             
             <div className="space-y-2 text-xs text-gray-600">
               <div className="flex justify-between">
-                <span>نمایشی:</span>
-                <code className="bg-white px-2 py-1 rounded">HESA-2025-DEMO-001</code>
+                <span>مدیریت:</span>
+                <code className="bg-white px-2 py-1 rounded">HESA-ADMIN-2025-001</code>
               </div>
               <div className="flex justify-between">
-                <span>کامل:</span>
-                <code className="bg-white px-2 py-1 rounded">HESA-2025-FULL-002</code>
-              </div>
-              <div className="flex justify-between">
-                <span>آزمایشی (30 روز):</span>
-                <code className="bg-white px-2 py-1 rounded">HESA-2025-TRIAL-003</code>
+                <span>آزمایشی (1 روز):</span>
+                <code className="bg-white px-2 py-1 rounded">HESA-TRIAL-2025-002</code>
               </div>
             </div>
             
