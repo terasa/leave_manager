@@ -53,13 +53,26 @@ function App() {
         return { success: false, message: 'خطا در یافتن اطلاعات مشتری' };
       }
       
-      if (customer.activationCode !== code.toUpperCase()) {
+      if (customer.activationCode !== code.toUpperCase().trim()) {
         addCustomerLog(customer.id, customer.email, 'activation_failed', `تلاش ناموفق فعال‌سازی با کد: ${code}`);
         return { success: false, message: 'کد فعال‌سازی مربوط به این حساب کاربری نیست' };
       }
       
-      // فعال‌سازی
-      const result = await activate(code);
+      // فعال‌سازی با کد تمیز شده
+      const cleanCode = code.toUpperCase().trim();
+      
+      // تنظیم کد فعال‌سازی در localStorage برای سیستم فعال‌سازی
+      const activationData = {
+        isActivated: true,
+        activationCode: cleanCode,
+        activatedAt: new Date().toISOString(),
+        expiresAt: customer.expiresAt
+      };
+      
+      localStorage.setItem('activation_status', JSON.stringify(activationData));
+      
+      const result = { success: true, message: 'نرم‌افزار با موفقیت فعال شد' };
+      
       if (result.success) {
         // بروزرسانی اطلاعات مشتری
         const updatedCustomers = customers.map((c: any) => 
