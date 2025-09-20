@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, User, Calendar, Shield, Heart } from 'lucide-react';
+import { Info, User, Calendar, Shield, Heart, Users } from 'lucide-react';
 import { englishToPersianNumbers } from '../utils/dateHelpers';
 
 const About: React.FC = () => {
