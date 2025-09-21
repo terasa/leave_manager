@@ -213,6 +213,9 @@ export const useLogger = () => {
       logger.addLog(userId, username, action, entityType, entityId, entityData, oldData);
     },
     getLogs: () => logger.getLogs(),
-    clearLogs: () => logger.clearLogs()
+    clearLogs: () => logger.clearLogs(),
+    addCustomerLog: (userId: string, email: string, action: string, details: string) => {
+      logger.addLog(userId, email, 'update', 'user', userId, { details });
+    }
   };
 };

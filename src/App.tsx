@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { useActivation } from './hooks/useActivation';
-import { addCustomerLog } from './hooks/useLogger';
+import { useLogger } from './hooks/useLogger';
 import LandingPage from './components/LandingPage';
 import CustomerLogin from './components/CustomerLogin';
 import CustomerDashboard from './components/CustomerDashboard';
@@ -20,6 +20,7 @@ import AdminPanel from './components/AdminPanel';
 function App() {
   const { currentUser, loading, login, logout } = useAuth();
   const { activationStatus, loading: activationLoading } = useActivation();
+  const { addLog } = useLogger();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [showCustomerLogin, setShowCustomerLogin] = useState(false);
   const [customerData, setCustomerData] = useState<any>(null);
@@ -54,7 +55,7 @@ function App() {
       }
       
       if (customer.activationCode !== code.toUpperCase().trim()) {
-        addCustomerLog(customer.id, customer.email, 'activation_failed', `تلاش ناموفق فعال‌سازی با کد: ${code}`);
+        addLog(customer.id, customer.email, 'update', 'user', customer.id, `تلاش ناموفق فعال‌سازی با کد: ${code}`);
         return { success: false, message: 'کد فعال‌سازی مربوط به این حساب کاربری نیست' };
       }
       
@@ -83,7 +84,7 @@ function App() {
         localStorage.setItem('admin_customers', JSON.stringify(updatedCustomers));
         
         setCustomerData({ ...customer, isActivated: true, activatedAt: new Date().toISOString() });
-        addCustomerLog(customer.id, customer.email, 'activation_success', 'نرم‌افزار با موفقیت فعال شد');
+        addLog(customer.id, customer.email, 'update', 'user', customer.id, 'نرم‌افزار با موفقیت فعال شد');
         
         // بعد از فعال‌سازی موفق، هدایت به صفحه ورود نرم‌افزار
         setTimeout(() => {
@@ -114,7 +115,7 @@ function App() {
       localStorage.setItem('admin_customers', JSON.stringify(updatedCustomers));
       
       setCustomerData({ ...customer, password: newPassword });
-      addCustomerLog(customer.id, customer.email, 'password_changed', 'رمز عبور تغییر کرد');
+      addLog(customer.id, customer.email, 'update', 'user', customer.id, 'رمز عبور تغییر کرد');
       
       return { success: true, message: 'رمز عبور با موفقیت تغییر کرد' };
     };
@@ -160,7 +161,7 @@ function App() {
       setCustomerData(customer);
       setShowCustomerLogin(false);
       
-      addCustomerLog(customer.id, customer.email, 'login', 'ورود به پنل مشتری');
+      addLog(customer.id, customer.email, 'login', 'user', customer.id, 'ورود به پنل مشتری');
       
       // بررسی وضعیت فعال‌سازی
       if (!customer.isActivated) {
@@ -200,7 +201,7 @@ function App() {
       }
       
       // شبیه‌سازی ارسال کد
-      addCustomerLog(customer.id, customer.email, 'otp_requested', 'درخواست کد یکبار مصرف');
+      addLog(customer.id, customer.email, 'update', 'user', customer.id, 'درخواست کد یکبار مصرف');
       return { success: true, message: 'کد یکبار مصرف ارسال شد' };
     };
 
